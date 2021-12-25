@@ -4,51 +4,63 @@ const Discord = require("discord.js");
 
 const config = require("../Data/config.json");
 
+const { online } = require("../Classes/vrchat.js");
+
 module.exports = new Command({
-    name: "help",
-    description: "Shows info about commands",
+    name: "info",
+    description: "gives you info about nota",
+
     async run(message, args, client) {
+        data = await online()
 
         const embed = new Discord.MessageEmbed();
 
-        embed.setTitle(`${client.user.username} help`)
+        embed.setTitle(`About Nota AI,`)
             .setAuthor(
                 message.author.username,
                 message.author.avatarURL({ dynamic: true })
             )
-            .setDescription(`Information and usage of ${client.user.username}`)
+            .setDescription(`Information about Nota AI`)
             .setColor(config.color)
             .setThumbnail(client.user.avatarURL({ dynamic: true }))
             .setTimestamp(message.createdTimestamp)
             .addFields(
                 {
-                    name: `${config.prefix}about`,
-                    value: `gives info about ${client.user.username}`,
+                    name: "date joined",
+                    value: `${data.date_joined}`,
                     inline: false
                 },
                 {
-                    name: `${config.prefix}help`,
-                    value: `gives info about ${client.user.username} text commands`,
+                    name: "status",
+                    value: `${data.status}`,
                     inline: false
                 },
                 {
-                    name: `${config.prefix}online`,
-                    value: `tells you if nota is online`,
+                    name: "location",
+                    value: `${data.location}`,
                     inline: false
                 },
                 {
-                    name: `${config.prefix}info`,
-                    value: `gives info about Nota AI`,
+                    name: "worldID",
+                    value: `${data.worldId}`,
                     inline: false
                 },
-                // {
-                //     name: `${config.prefix}voicehelp`,
-                //     value: `gives info about ${client.user.username} voice commands`,
-                //     inline: false
-                // }
+                {
+                    name: "instanceID",
+                    value: `${data.instanceId}`,
+                    inline: false
+                },
+                {
+                    name: "online status",
+                    value: `${data.state}`,
+                    inline: false
+                },
             );
 
         message.channel.send({ embeds: [embed] });
 
+        
+        console.log(data);
     }
+
 });
