@@ -58,9 +58,6 @@ module.exports = new Command({
             );
 
         message.channel.send({ embeds: [embed] });
-
-        
-        console.log(data);
     }
 
 });
