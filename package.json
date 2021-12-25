@@ -1,0 +1,26 @@
+{
+  "name": "ziverbot",
+  "version": "1.1.1",
+  "description": "The ziver bot js version",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsc": "tsc -w --skiplibCheck",
+    "dev": "nodemon test.js"
+  },
+  "author": "Thimo",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/voice": "^0.7.5",
+    "discord.js": "^13.3.1",
+    "ffmpeg-static": "^4.4.0",
+    "google-auth-library": "^7.10.2",
+    "googleapis": "^92.0.0",
+    "libsodium-wrappers": "^0.7.9",
+    "mysql": "^2.18.1",
+    "node-fetch": "^3.1.0",
+    "nodemon": "^2.0.15",
+    "opusscript": "^0.0.8",
+    "vue": "^3.2.23"
+  }
+}
