@@ -1,7 +1,7 @@
 {
-  "name": "ziverbot",
-  "version": "1.1.1",
-  "description": "The ziver bot js version",
+  "name": "Nota AI",
+  "version": "0.0.1",
+  "description": "The Nota AI bot js version",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
