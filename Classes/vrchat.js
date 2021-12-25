@@ -36,6 +36,7 @@ function onlinestate() {
 
 async function onlineping(client) {
     statenow = await onlinestate();
+    // console.log({statenow})
     if (statestart != statenow) {
         console.log({statestart})
         console.log({statenow})
