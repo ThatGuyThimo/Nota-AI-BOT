@@ -19,33 +19,45 @@ AuthenticationApi.getCurrentUser().then(resp => {
 var statestart =  'offline';
 
 function online() {
-    return new Promise(resolve => {
-        UsersApi.getUser("usr_9e88f97b-9264-47c9-ba9c-a1794513ae43").then(resp => {
-        resolve(resp.data)
-     })
-    })
+    try {
+        return new Promise(resolve => {
+            UsersApi.getUser("usr_9e88f97b-9264-47c9-ba9c-a1794513ae43").then(resp => {
+            resolve(resp.data)
+         })
+        })
+    } catch {
+        console.log('something went wrong')
+    }
 }
 
 function onlinestate() {
-    return new Promise(resolve => {
-        UsersApi.getUser("usr_9e88f97b-9264-47c9-ba9c-a1794513ae43").then(resp => {
-        resolve(resp.data.state)
-     })
-    })
+    try {
+        return new Promise(resolve => {
+            UsersApi.getUser("usr_9e88f97b-9264-47c9-ba9c-a1794513ae43").then(resp => {
+            resolve(resp.data.state)
+         })
+        })
+    } catch {
+        console.log('something went wrong')
+    }
 }
 
 async function onlineping(client) {
-    statenow = await onlinestate();
-    if (statestart != statenow) {
-        console.log({statestart})
-        console.log({statenow})
-        statestart = statenow;
-        if (statestart == "online") {
-            client.channels.cache.get('923611865001631764').send(`<@&924403524027154513> nota is ${statestart}`);
-        } else {
-            client.channels.cache.get('923611865001631764').send(`nota is ${statestart}`);
+    try {
+        statenow = await onlinestate();
+        if (statestart != statenow) {
+            console.log({statestart})
+            console.log({statenow})
+            statestart = statenow;
+            if (statestart == "online") {
+                client.channels.cache.get('923611865001631764').send(`<@&924403524027154513> nota is ${statestart}`);
+            } else {
+                client.channels.cache.get('923611865001631764').send(`nota is ${statestart}`);
+            }
+    
         }
-
+    } catch {
+        console.log('something went wrong')
     }
 }
 
