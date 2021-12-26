@@ -4,7 +4,7 @@ const config = require("../Data/config.json");
 
 
 const configuration = new vrchat.Configuration({
-    username: "ThatGuyThimo",
+    username: "thimodehaan@gmail.com",
     password: config.password
 });
 
