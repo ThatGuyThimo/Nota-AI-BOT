@@ -4,7 +4,7 @@ const config = require("../Data/config.json");
 
 
 const configuration = new vrchat.Configuration({
-    username: "ThatGuyThimo",
+    username: "thimodehaan@gmail.com",
     password: config.password
 });
 
@@ -46,8 +46,6 @@ async function onlineping(client) {
     try {
         statenow = await onlinestate();
         if (statestart != statenow) {
-            console.log({statestart})
-            console.log({statenow})
             statestart = statenow;
             if (statestart == "online") {
                 client.channels.cache.get('923611865001631764').send(`<@&924403524027154513> nota is ${statestart}`);
