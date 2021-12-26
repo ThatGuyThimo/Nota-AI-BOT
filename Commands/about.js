@@ -42,8 +42,11 @@ module.exports = new Command({
                     inline: false
                 },
             );
-
-        message.channel.send({ embeds: [embed] });
+        try {
+            message.channel.send({ embeds: [embed] });
+        } catch {
+            console.log('something went wrong')
+        }
 
     }
 });
