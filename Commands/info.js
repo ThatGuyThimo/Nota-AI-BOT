@@ -37,7 +37,7 @@ module.exports = new Command({
                 },
                 {
                     name: "location",
-                    value: `${data.location}`,
+                    value: `[Click here](https://vrchat.com/home/launch?worldId=${data.worldId}&instanceId=${data.instanceId})`,
                     inline: false
                 },
                 {
