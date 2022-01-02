@@ -4,7 +4,7 @@ const config = require("../Data/config.json");
 
 
 const configuration = new vrchat.Configuration({
-    username: "thimodehaan@gmail.com",
+    username: config.email,
     password: config.password
 });
 
@@ -21,41 +21,35 @@ var statestart =  'offline';
 function online() {
     try {
         return new Promise(resolve => {
-            UsersApi.getUser("usr_9e88f97b-9264-47c9-ba9c-a1794513ae43").then(resp => {
+            UsersApi.getUser(config.user).then(resp => {
             resolve(resp.data)
          })
         })
     } catch {
-        console.log('something went wrong')
-    }
-}
-
-function onlinestate() {
-    try {
-        return new Promise(resolve => {
-            UsersApi.getUser("usr_9e88f97b-9264-47c9-ba9c-a1794513ae43").then(resp => {
-            resolve(resp.data.state)
-         })
-        })
-    } catch {
-        console.log('something went wrong')
+        console.log('could not fetch user')
     }
 }
 
 async function onlineping(client) {
     try {
-        statenow = await onlinestate();
-        if (statestart != statenow) {
-            statestart = statenow;
+        statenow = await online();
+        if (statestart != statenow.state) {
+            statestart = statenow.state;
             if (statestart == "online") {
-                client.channels.cache.get('923611865001631764').send(`<@&924403524027154513> nota is ${statestart}`);
+                client.channels.cache.get('927271117155074158').send(`<@&924403524027154513> nota is ${statestart}`);
+                setTimeout(function () {
+                    client.channels.cache.get('923611865001631764').send(`<@&924403524027154513> nota is ${statestart}`);
+                }, config.timeout);
             } else {
-                client.channels.cache.get('923611865001631764').send(`nota is ${statestart}`);
+                client.channels.cache.get('927271117155074158').send(`nota is ${statestart}`);
+                setTimeout(function () {
+                    client.channels.cache.get('923611865001631764').send(`nota is ${statestart}`);
+                }, config.timeout);
             }
     
         }
     } catch {
-        console.log('something went wrong')
+        console.log('something went wrong with the status check')
     }
 }
 
