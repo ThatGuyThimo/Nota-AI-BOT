@@ -23,7 +23,7 @@ module.exports = new Command({
             .addFields(
                 {
                     name: "Bot Version",
-                    value: "0.0.1",
+                    value: "0.0.2",
                     inline: false
                 },
                 {
