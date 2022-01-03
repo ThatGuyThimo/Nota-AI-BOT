@@ -23,7 +23,7 @@ module.exports = new Command({
             .addFields(
                 {
                     name: `${config.prefix}about`,
-                    value: `gives info about ${client.user.username}`,
+                    value: `gives info about ${client.user.username} BOT`,
                     inline: false
                 },
                 {
