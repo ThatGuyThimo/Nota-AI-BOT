@@ -40,12 +40,7 @@ module.exports = new Command({
                     name: `${config.prefix}info`,
                     value: `gives info about Nota AI`,
                     inline: false
-                },
-                // {
-                //     name: `${config.prefix}voicehelp`,
-                //     value: `gives info about ${client.user.username} voice commands`,
-                //     inline: false
-                // }
+                }
             );
         try {
             message.channel.send({ embeds: [embed] });
