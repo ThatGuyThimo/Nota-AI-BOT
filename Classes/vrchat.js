@@ -38,12 +38,17 @@ async function onlineping(client) {
             if (statestart == "online") {
                 client.channels.cache.get('927271117155074158').send(`<@&924403524027154513> nota is ${statestart}`);
                 setTimeout(function () {
-                    client.channels.cache.get('923611865001631764').send(`<@&924403524027154513> nota is ${statestart}`);
+                    client.channels.cache.get('923611865001631764').send(`<@&924403524027154513> nota is online`);
+                }, config.timeout);
+            } else if(statestart == "active") {
+                client.channels.cache.get('927271117155074158').send(`nota is ${statestart}`);
+                setTimeout(function () {
+                    client.channels.cache.get('923611865001631764').send(`nota is active`);
                 }, config.timeout);
             } else {
                 client.channels.cache.get('927271117155074158').send(`nota is ${statestart}`);
                 setTimeout(function () {
-                    client.channels.cache.get('923611865001631764').send(`nota is ${statestart}`);
+                    client.channels.cache.get('923611865001631764').send(`nota is offline`);
                 }, config.timeout);
             }
     
