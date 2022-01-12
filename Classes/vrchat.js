@@ -18,6 +18,10 @@ AuthenticationApi.getCurrentUser().then(resp => {
 
 var statestart =  'offline';
 
+/**
+ * 
+ * @returns vrchat api data abou the user
+ */
 function online() {
     try {
         return new Promise(resolve => {
@@ -30,6 +34,10 @@ function online() {
     }
 }
 
+/**
+ * 
+ * @param {Client} client 
+ */
 async function onlineping(client) {
     try {
         statenow = await online();
