@@ -37,6 +37,11 @@ module.exports = new Command({
                     inline: false
                 },
                 {
+                    name: `${config.prefix}invite`,
+                    value: `generates an invite link to nota only workes for users with the role <@&930647071260823584>`,
+                    inline: false
+                },
+                {
                     name: `${config.prefix}info`,
                     value: `gives info about Nota AI`,
                     inline: false
