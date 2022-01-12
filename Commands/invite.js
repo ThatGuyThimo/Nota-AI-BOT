@@ -32,12 +32,7 @@ module.exports = new Command({
                         name: "location",
                         value: `[World invite](https://vrchat.com/home/launch?worldId=${data.worldId}&instanceId=${data.instanceId})`,
                         inline: false
-                    },
-                    {
-                        name: "online status",
-                        value: `${data.state}`,
-                        inline: false
-                    },
+                    }
                 );
             try {
                 message.channel.send({ embeds: [embed] });
