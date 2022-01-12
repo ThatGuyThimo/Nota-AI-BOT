@@ -34,16 +34,6 @@ module.exports = new Command({
                     inline: false
                 },
                 {
-                    name: "worldID",
-                    value: `${data.worldId}`,
-                    inline: false
-                },
-                {
-                    name: "instanceID",
-                    value: `${data.instanceId}`,
-                    inline: false
-                },
-                {
                     name: "online status",
                     value: `${data.state}`,
                     inline: false
