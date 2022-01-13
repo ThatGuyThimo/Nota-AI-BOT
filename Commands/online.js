@@ -1,9 +1,5 @@
 const Command = require("../Structures/Command.js");
 
-const Discord = require("discord.js");
-
-const config = require("../Data/config.json");
-
 const { online } = require("../Classes/vrchat.js");
 
 module.exports = new Command({
