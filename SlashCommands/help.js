@@ -22,27 +22,27 @@ module.exports = new Command({
             .setTimestamp(message.createdTimestamp)
             .addFields(
                 {
-                    name: `${config.prefix}about`,
+                    name: `/about`,
                     value: `gives info about ${client.user.username} BOT`,
                     inline: false
                 },
                 {
-                    name: `${config.prefix}help`,
+                    name: `/help`,
                     value: `gives info about ${client.user.username} text commands`,
                     inline: false
                 },
                 {
-                    name: `${config.prefix}online`,
+                    name: `$/online`,
                     value: `tells you if nota is online`,
                     inline: false
                 },
                 {
-                    name: `${config.prefix}invite`,
+                    name: `/invite`,
                     value: `generates an invite link to nota only workes for users with the role <@&930647071260823584>`,
                     inline: false
                 },
                 {
-                    name: `${config.prefix}info`,
+                    name: `$/info`,
                     value: `gives info about Nota AI`,
                     inline: false
                 }
