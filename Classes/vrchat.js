@@ -2,15 +2,16 @@ const vrchat = require("vrchat");
 
 const config = require("../Data/config.json");
 
+let lastTime = new Date
 
 const configuration = new vrchat.Configuration({
     username: config.email,
     password: config.password
 });
 
-const UsersApi = new vrchat.UsersApi(configuration);
+let UsersApi = new vrchat.UsersApi(configuration);
 
-const AuthenticationApi = new vrchat.AuthenticationApi(configuration);
+let AuthenticationApi = new vrchat.AuthenticationApi(configuration);
 
 AuthenticationApi.getCurrentUser().then(resp => {
     console.log(`VRchat logged in as: ${resp.data.displayName}`);
@@ -23,6 +24,14 @@ var statestart =  'offline';
  * @returns vrchat api data abou the user
  */
 function online() {
+    let now = new Date
+    if (now.getDay() != lastTime.getDay()) {
+        console.log("Re initializing api.")
+        UsersApi = new vrchat.UsersApi(configuration)
+        AuthenticationApi = new vrchat.AuthenticationApi(configuration);
+        console.log("Api re initialized.")
+        lastTime = now
+    }
     try {
         return new Promise(resolve => {
             UsersApi.getUser(config.user).then(resp => {
