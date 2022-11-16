@@ -10,6 +10,7 @@ const configuration = new vrchat.Configuration({
 });
 
 let UsersApi = new vrchat.UsersApi(configuration);
+let WorldApi = new vrchat.WorldsApi(configuration);
 
 let AuthenticationApi = new vrchat.AuthenticationApi(configuration);
 
@@ -29,17 +30,51 @@ function online() {
         console.log("Re initializing api.")
         UsersApi = new vrchat.UsersApi(configuration)
         AuthenticationApi = new vrchat.AuthenticationApi(configuration);
+        WorldApi = new vrchat.WorldsApi(configuration);
         console.log("Api re initialized.")
         lastTime = now
     }
     try {
         return new Promise(resolve => {
             UsersApi.getUser(config.user).then(resp => {
+                if (resp.data.bio == "") {
+                    resp.data.bio = "none"
+                }
+                if (resp.data.statusDescription == "") {
+                    resp.data.statusDescription = "none"
+                }
             resolve(resp.data)
          })
         })
     } catch {
         console.log('could not fetch user')
+    }
+}
+
+function getWorld(worldId) {
+    if(worldId == "private"){return {"name": "Private"}}
+    if(worldId == "offline"){return {"name": "Offline"}}
+    try {
+        return new Promise(resolve => {
+            WorldApi.getWorld(worldId).then(resp => {
+                resolve(resp.data)
+            })
+        })
+    } catch {
+        console.log('could not fetch world')
+    }
+}
+function getInstance(worldId, instanceId) {
+    if(worldId == "private"){return {"name": ""}}
+    if(worldId == "offline"){return {"name": ""}}
+    try {
+        return new Promise(resolve => {
+            WorldApi.getWorldInstance(worldId, instanceId).then(resp => {
+                resolve(resp.data)
+            })
+        })
+    } catch {
+        console.log('could not fetch world')
     }
 }
 
@@ -75,4 +110,4 @@ async function onlineping(client) {
     }
 }
 
-module.exports = { online, onlineping }
+module.exports = { online, onlineping, getWorld, getInstance }

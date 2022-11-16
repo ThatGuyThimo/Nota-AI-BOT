@@ -4,7 +4,7 @@ const Discord = require("discord.js");
 
 const config = require("../Data/config.json");
 
-const { online } = require("../Classes/vrchat.js");
+const { online, getWorld, getInstance } = require("../Classes/vrchat.js");
 
 module.exports = new Command({
     name: "infoadmin",
@@ -17,6 +17,9 @@ module.exports = new Command({
         if(message.member.permissions.has("ADMINISTRATOR")) {
 
         const embed = new Discord.MessageEmbed();
+        const world = await getWorld(data.worldId);
+        const instance = await getInstance(data.worldId, data.instanceId);
+
 
         embed.setTitle(`About Nota AI,`)
             .setAuthor(
@@ -40,7 +43,7 @@ module.exports = new Command({
                 },
                 {
                     name: "location",
-                    value: `[Click here](https://vrchat.com/home/launch?worldId=${data.worldId}&instanceId=${data.instanceId})`,
+                    value: `[${world.name}#${instance.name}](https://vrchat.com/home/launch?worldId=${data.worldId}&instanceId=${data.instanceId})`,
                     inline: false
                 },
                 {
@@ -58,6 +61,21 @@ module.exports = new Command({
                     value: `${data.state}`,
                     inline: false
                 },
+                {
+                    name: "Last_Login",
+                    value: `${data.last_login}`,
+                    inline: false
+                },
+                {
+                    name: "StatusDescription",
+                    value: `${data.statusDescription}`,
+                    inline: false
+                },
+                {
+                    name: "Bio",
+                    value: `${data.bio}`,
+                    inline: false
+                }
             );
         try {
             message.channel.send({ embeds: [embed] });

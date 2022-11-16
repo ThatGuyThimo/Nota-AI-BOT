@@ -26,18 +26,33 @@ module.exports = new Command({
             .setTimestamp(message.createdTimestamp)
             .addFields(
                 {
-                    name: "date joined",
+                    name: "Date joined",
                     value: `${data.date_joined}`,
                     inline: false
                 },
                 {
-                    name: "status",
+                    name: "Status",
                     value: `${data.status}`,
                     inline: false
                 },
                 {
-                    name: "online status",
+                    name: "Online status",
                     value: `${data.state}`,
+                    inline: false
+                },
+                {
+                    name: "Last_Login",
+                    value: `${data.last_login}`,
+                    inline: false
+                },
+                {
+                    name: "StatusDescription",
+                    value: `${data.statusDescription}`,
+                    inline: false
+                },
+                {
+                    name: "Bio",
+                    value: `${data.bio}`,
                     inline: false
                 },
             );

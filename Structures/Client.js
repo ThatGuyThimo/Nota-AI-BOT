@@ -21,7 +21,7 @@ let slashCommands = []
 
 class Client extends Discord.Client {
     constructor() {
-        super({ intents, allowedMentions: { repliedUser: false } });
+        super({ intents,  allowedMentions: { parse: ['users', 'roles'], repliedUser: true }  });
 
         /**
          * @type {Discord.Collection<string, command>}

@@ -40,6 +40,21 @@ module.exports = new Command({
                     value: `${data.state}`,
                     inline: false
                 },
+                {
+                    name: "Last_Login",
+                    value: `${data.last_login}`,
+                    inline: false
+                },
+                {
+                    name: "StatusDescription",
+                    value: `${data.statusDescription}`,
+                    inline: false
+                },
+                {
+                    name: "Bio",
+                    value: `${data.bio}`,
+                    inline: false
+                },
             );
         try {
             message.channel.send({ embeds: [embed] });
