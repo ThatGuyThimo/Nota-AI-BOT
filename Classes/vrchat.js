@@ -30,17 +30,21 @@ var statestart =  'offline';
 async function online() {
     let now = new Date
     if (now.getDay() != lastTime.getDay()) {
-        console.log("Re initializing api.")
-        await AuthenticationApi.logout()
-        console.log(configuration)
-        UsersApi = new vrchat.UsersApi(configuration);
-        WorldApi = new vrchat.WorldsApi(configuration);
-        AuthenticationApi = new vrchat.AuthenticationApi(configuration);
-        await AuthenticationApi.getCurrentUser().then(resp => {
-            console.log(`VRchat logged in as: ${resp.data.displayName}`);
-        })
-        console.log("Api re initialized.")
-        lastTime = now
+        try {
+            console.log("Re initializing api.")
+            await AuthenticationApi.logout()
+            console.log(configuration)
+            UsersApi = new vrchat.UsersApi(configuration);
+            WorldApi = new vrchat.WorldsApi(configuration);
+            AuthenticationApi = new vrchat.AuthenticationApi(configuration);
+            await AuthenticationApi.getCurrentUser().then(resp => {
+                console.log(`VRchat logged in as: ${resp.data.displayName}`);
+            })
+            console.log("Api re initialized.")
+            lastTime = now
+        } catch(error) {
+            console.warn(error)
+        }
     }
     return new Promise((resolve, reject) => {
         UsersApi.getUser(config.user).then(resp => {
