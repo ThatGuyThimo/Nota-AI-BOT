@@ -31,11 +31,12 @@ async function online() {
     let now = new Date
     if (now.getDay() != lastTime.getDay()) {
         console.log("Re initializing api.")
-        AuthenticationApi.logout()
-        UsersApi = new vrchat.UsersApi(configuration)
+        await AuthenticationApi.logout()
+        console.log(configuration)
+        UsersApi = new vrchat.UsersApi(configuration);
         WorldApi = new vrchat.WorldsApi(configuration);
         AuthenticationApi = new vrchat.AuthenticationApi(configuration);
-        AuthenticationApi.getCurrentUser().then(resp => {
+        await AuthenticationApi.getCurrentUser().then(resp => {
             console.log(`VRchat logged in as: ${resp.data.displayName}`);
         })
         console.log("Api re initialized.")
@@ -91,19 +92,13 @@ async function onlineping(client) {
             statestart = statenow.state;
             if (statestart == "online") {
                 client.channels.cache.get('927271117155074158').send(`<@&924403524027154513> nota is ${statestart}`);
-                setTimeout(function () {
                     client.channels.cache.get('923611865001631764').send(`<@&924403524027154513> nota is online`);
-                }, config.timeout);
             } else if(statestart == "active") {
                 client.channels.cache.get('927271117155074158').send(`nota is ${statestart}`);
-                setTimeout(function () {
                     client.channels.cache.get('923611865001631764').send(`nota is active`);
-                }, config.timeout);
             } else {
                 client.channels.cache.get('927271117155074158').send(`nota is ${statestart}`);
-                setTimeout(function () {
                     client.channels.cache.get('923611865001631764').send(`nota is offline`);
-                }, config.timeout);
             }
     
         }
