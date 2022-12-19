@@ -12,7 +12,10 @@ const configuration = new vrchat.Configuration({
 let UsersApi = new vrchat.UsersApi(configuration);
 let WorldApi = new vrchat.WorldsApi(configuration);
 
+
+
 let AuthenticationApi = new vrchat.AuthenticationApi(configuration);
+
 
 AuthenticationApi.getCurrentUser().then(resp => {
     console.log(`VRchat logged in as: ${resp.data.displayName}`);
@@ -28,9 +31,10 @@ async function online() {
     let now = new Date
     if (now.getDay() != lastTime.getDay()) {
         console.log("Re initializing api.")
+        AuthenticationApi.logout()
         UsersApi = new vrchat.UsersApi(configuration)
-        AuthenticationApi = new vrchat.AuthenticationApi(configuration);
         WorldApi = new vrchat.WorldsApi(configuration);
+        AuthenticationApi = new vrchat.AuthenticationApi(configuration);
         AuthenticationApi.getCurrentUser().then(resp => {
             console.log(`VRchat logged in as: ${resp.data.displayName}`);
         })
