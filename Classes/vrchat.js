@@ -24,7 +24,7 @@ var statestart =  'offline';
  * 
  * @returns vrchat api data abou the user
  */
-function online() {
+async function online() {
     let now = new Date
     if (now.getDay() != lastTime.getDay()) {
         console.log("Re initializing api.")
@@ -37,48 +37,44 @@ function online() {
         console.log("Api re initialized.")
         lastTime = now
     }
-    try {
-        return new Promise(resolve => {
-            UsersApi.getUser(config.user).then(resp => {
-                if (resp.data.bio == "") {
-                    resp.data.bio = "none"
-                }
-                if (resp.data.statusDescription == "") {
-                    resp.data.statusDescription = "none"
-                }
-            resolve(resp.data)
-         })
-        })
-    } catch {
-        console.log('could not fetch user')
-    }
+    return new Promise((resolve, reject) => {
+        UsersApi.getUser(config.user).then(resp => {
+            if (resp.data.bio == "") {
+                resp.data.bio = "none"
+            }
+            if (resp.data.statusDescription == "") {
+                resp.data.statusDescription = "none"
+            }
+        resolve(resp.data)
+     }).catch(error => {
+        reject(error)
+     })
+    })
 }
 
-function getWorld(worldId) {
+async function getWorld(worldId) {
     if(worldId == "private"){return {"name": "Private"}}
     if(worldId == "offline"){return {"name": "Offline"}}
-    try {
-        return new Promise(resolve => {
-            WorldApi.getWorld(worldId).then(resp => {
-                resolve(resp.data)
-            })
+
+    return new Promise((resolve, reject) => {
+        WorldApi.getWorld(worldId).then(resp => {
+            resolve(resp.data)
+        }).catch(error => {
+            reject(error)
         })
-    } catch {
-        console.log('could not fetch world')
-    }
+    })   
 }
-function getInstance(worldId, instanceId) {
+async function getInstance(worldId, instanceId) {
     if(worldId == "private"){return {"name": ""}}
     if(worldId == "offline"){return {"name": ""}}
-    try {
-        return new Promise(resolve => {
-            WorldApi.getWorldInstance(worldId, instanceId).then(resp => {
-                resolve(resp.data)
-            })
+    
+    return new Promise((resolve, reject) => {
+        WorldApi.getWorldInstance(worldId, instanceId).then(resp => {
+            resolve(resp.data)
+        }).catch(error => {
+            reject(error)
         })
-    } catch {
-        console.log('could not fetch world')
-    }
+    })
 }
 
 /**
@@ -86,8 +82,7 @@ function getInstance(worldId, instanceId) {
  * @param {Client} client 
  */
 async function onlineping(client) {
-    try {
-        statenow = await online();
+    await online().then(statenow => {
         if (statestart != statenow.state) {
             statestart = statenow.state;
             if (statestart == "online") {
@@ -108,9 +103,9 @@ async function onlineping(client) {
             }
     
         }
-    } catch {
-        console.log('something went wrong with the status check')
-    }
+    }).catch(error => {
+        console.warn(error)
+    });
 }
 
 module.exports = { online, onlineping, getWorld, getInstance }

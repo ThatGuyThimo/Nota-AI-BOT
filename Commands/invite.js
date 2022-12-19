@@ -4,7 +4,7 @@ const Discord = require("discord.js");
 
 const config = require("../Data/config.json");
 
-const { online, getWorld } = require("../Classes/vrchat.js");
+const { online, getWorld, getInstance } = require("../Classes/vrchat.js");
 
 module.exports = new Command({
     name: "invite",
