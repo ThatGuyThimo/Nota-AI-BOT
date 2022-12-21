@@ -3,6 +3,8 @@ const vrchat = require("vrchat");
 const config = require("../Data/config.json");
 
 let lastTime = new Date
+let lastPing = new Date
+lastPing = lastPing.getTime()
 
 const configuration = new vrchat.Configuration({
     username: config.email,
@@ -21,7 +23,27 @@ AuthenticationApi.getCurrentUser().then(resp => {
     console.log(`VRchat logged in as: ${resp.data.displayName}`);
 })
 
-var statestart =  'offline';
+let state =  'offline';
+
+
+async function connect() {
+    try {
+        console.log("Re initializing api.")
+        await AuthenticationApi.logout()
+
+        UsersApi = new vrchat.UsersApi(configuration);
+        WorldApi = new vrchat.WorldsApi(configuration);
+        AuthenticationApi = new vrchat.AuthenticationApi(configuration);
+        
+        await AuthenticationApi.getCurrentUser().then(resp => {
+            console.log(`VRchat logged in as: ${resp.data.displayName}`);
+        })
+        lastTime = now
+
+    } catch(error) {
+        console.warn(error)
+    }
+}
 
 /**
  * 
@@ -30,21 +52,7 @@ var statestart =  'offline';
 async function online() {
     let now = new Date
     if (now.getDay() != lastTime.getDay()) {
-        try {
-            console.log("Re initializing api.")
-            await AuthenticationApi.logout()
-            console.log(configuration)
-            UsersApi = new vrchat.UsersApi(configuration);
-            WorldApi = new vrchat.WorldsApi(configuration);
-            AuthenticationApi = new vrchat.AuthenticationApi(configuration);
-            await AuthenticationApi.getCurrentUser().then(resp => {
-                console.log(`VRchat logged in as: ${resp.data.displayName}`);
-            })
-            console.log("Api re initialized.")
-            lastTime = now
-        } catch(error) {
-            console.warn(error)
-        }
+        connect()
     }
     return new Promise((resolve, reject) => {
         UsersApi.getUser(config.user).then(resp => {
@@ -56,6 +64,7 @@ async function online() {
             }
         resolve(resp.data)
      }).catch(error => {
+        connect()
         reject(error)
      })
     })
@@ -74,8 +83,7 @@ async function getWorld(worldId) {
     })   
 }
 async function getInstance(worldId, instanceId) {
-    if(worldId == "private"){return {"name": ""}}
-    if(worldId == "offline"){return {"name": ""}}
+    if(worldId == "private" || worldId == "offline"){return {"name": ""}}
     
     return new Promise((resolve, reject) => {
         WorldApi.getWorldInstance(worldId, instanceId).then(resp => {
@@ -92,23 +100,39 @@ async function getInstance(worldId, instanceId) {
  */
 async function onlineping(client) {
     await online().then(statenow => {
-        if (statestart != statenow.state) {
-            statestart = statenow.state;
-            if (statestart == "online") {
-                client.channels.cache.get('927271117155074158').send(`<@&924403524027154513> nota is ${statestart}`);
-                    client.channels.cache.get('923611865001631764').send(`<@&924403524027154513> nota is online`);
-            } else if(statestart == "active") {
-                client.channels.cache.get('927271117155074158').send(`nota is ${statestart}`);
-                    client.channels.cache.get('923611865001631764').send(`nota is active`);
-            } else {
-                client.channels.cache.get('927271117155074158').send(`nota is ${statestart}`);
-                    client.channels.cache.get('923611865001631764').send(`nota is offline`);
-            }
-    
+        if (state != statenow.state) {
+            state = statenow.state;
+            sendPing(state, client)
         }
     }).catch(error => {
         console.warn(error)
     });
+}
+
+function sendPing(state, client) {
+    now = new Date
+    switch(state){
+        case "online":
+            if (lastPing < now.getTime()) {
+                console.log()
+                client.channels.cache.get('927271117155074158').send(`<@&924403524027154513> nota is online`);
+                client.channels.cache.get('923611865001631764').send(`<@&924403524027154513> nota is online`);
+
+                lastPing = now.getTime() + config.pingTimout
+            } else {
+                client.channels.cache.get('927271117155074158').send(`nota is online`);
+                client.channels.cache.get('923611865001631764').send(`nota is online`);
+            }
+            break
+        case "active":
+            client.channels.cache.get('927271117155074158').send(`nota is active`);
+            client.channels.cache.get('923611865001631764').send(`nota is active`);
+            break
+        default:
+            client.channels.cache.get('927271117155074158').send(`nota is offline`);
+            client.channels.cache.get('923611865001631764').send(`nota is offline`);
+            break
+    }
 }
 
 module.exports = { online, onlineping, getWorld, getInstance }

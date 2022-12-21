@@ -57,11 +57,8 @@ module.exports = new Command({
                         inline: false
                     },
                 );
-            try {
+                
                 message.reply({ embeds: [embed] });
-            } catch {
-                console.log('something went wrong')
-            }
 
         } catch(error) {
             console.warn(error)
