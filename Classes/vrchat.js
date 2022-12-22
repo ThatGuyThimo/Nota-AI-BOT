@@ -26,7 +26,7 @@ AuthenticationApi.getCurrentUser().then(resp => {
 let state =  'offline';
 
 
-async function connect() {
+async function connect(now) {
     try {
         console.log("Re initializing api.")
         await AuthenticationApi.logout()
@@ -52,7 +52,7 @@ async function connect() {
 async function online() {
     let now = new Date
     if (now.getDay() != lastTime.getDay()) {
-        connect()
+        connect(now)
     }
     return new Promise((resolve, reject) => {
         UsersApi.getUser(config.user).then(resp => {
@@ -64,7 +64,7 @@ async function online() {
             }
         resolve(resp.data)
      }).catch(error => {
-        connect()
+        connect(now)
         reject(error)
      })
     })
