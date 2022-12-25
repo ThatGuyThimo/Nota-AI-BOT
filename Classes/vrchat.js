@@ -52,7 +52,7 @@ async function connect(now) {
 async function online() {
     let now = new Date
     if (now.getDay() != lastTime.getDay()) {
-        connect(now)
+        await connect(now)
     }
     return new Promise((resolve, reject) => {
         UsersApi.getUser(config.user).then(resp => {
@@ -63,8 +63,8 @@ async function online() {
                 resp.data.statusDescription = "none"
             }
         resolve(resp.data)
-     }).catch(error => {
-        connect(now)
+     }).catch(async function(error) {
+         await connect(now)
         reject(error)
      })
     })
