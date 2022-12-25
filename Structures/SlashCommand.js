@@ -13,13 +13,14 @@ function RunFunction(message, args, client) {}
 
 class SlashCommand {
     /**
-     * @typedef {{name: string, description: string, run: RunFunction}} CommandOptions
-     * @param {CommandOptions} options 
+     * @typedef {{name: string, description: string, options: Array, run: RunFunction}} CommandOptions
+     * @param {CommandOptions} Coptions 
      */
-    constructor(options) {
-        this.name = options.name;
-        this.description = options.description;
-        this.run = options.run;
+    constructor(Coptions) {
+        this.name = Coptions.name;
+        this.description = Coptions.description;
+        this.options = Coptions.options;
+        this.run = Coptions.run;
     }
 }
 

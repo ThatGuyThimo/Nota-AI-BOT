@@ -13,6 +13,7 @@ const configuration = new vrchat.Configuration({
 
 let UsersApi = new vrchat.UsersApi(configuration);
 let WorldApi = new vrchat.WorldsApi(configuration);
+let GroupApi = new vrchat.GroupsApi(configuration);
 
 
 
@@ -25,6 +26,34 @@ AuthenticationApi.getCurrentUser().then(resp => {
 
 let state =  'offline';
 
+async function joinGroup(username) {
+return new Promise((resolve, reject) => {
+    GroupApi.getGroupRequests(config.groupId).then(result => {
+        
+        // console.log(result.data)
+
+        let index = 0
+
+        result.data.forEach(async function (request) {
+            index++
+            if (request.user.displayName == username) {
+                await GroupApi.respondGroupJoinRequest(config.groupId, request.userId, "accept").then(
+                    resolve("accpeted")
+                ).catch(error => {
+                    console.log(error)
+                    reject(error)
+                })
+            } else if(index == result.data.length) {
+                resolve("User not found.")
+            }
+        }) 
+    }).catch(error => {
+        reject(error)
+    })
+    
+})
+}
+
 
 async function connect(now) {
     try {
@@ -33,6 +62,7 @@ async function connect(now) {
 
         UsersApi = new vrchat.UsersApi(configuration);
         WorldApi = new vrchat.WorldsApi(configuration);
+        GroupApi = new vrchat.GroupsApi(configuration);
         AuthenticationApi = new vrchat.AuthenticationApi(configuration);
         
         await AuthenticationApi.getCurrentUser().then(resp => {
@@ -135,4 +165,4 @@ function sendPing(state, client) {
     }
 }
 
-module.exports = { online, onlineping, getWorld, getInstance }
+module.exports = { online, onlineping, getWorld, getInstance, joinGroup }

@@ -1,8 +1,8 @@
-const Command = require("../Structures/Command.js");
+const SlashCommand = require("../Structures/SlashCommand.js");
 
 const { online } = require("../Classes/vrchat.js");
 
-module.exports = new Command({
+module.exports = new SlashCommand({
     name: "online",
     description: "tells you if nota is online",
 

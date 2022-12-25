@@ -1,4 +1,4 @@
-const Command = require("../Structures/Command.js");
+const SlashCommand = require("../Structures/SlashCommand.js");
 
 const Discord = require("discord.js");
 
@@ -6,7 +6,7 @@ const config = require("../Data/config.json");
 
 const { online, getWorld, getInstance } = require("../Classes/vrchat.js");
 
-module.exports = new Command({
+module.exports = new SlashCommand({
     name: "infoadmin",
     description: "gives you info about nota",
 
@@ -89,7 +89,7 @@ module.exports = new Command({
             message.reply("Something went wrong")
         });
     } else {
-        message.reply("You don't have permission to use that command!");
+        message.reply("You don't have permission to use that SlashCommand!");
     }
 }
 

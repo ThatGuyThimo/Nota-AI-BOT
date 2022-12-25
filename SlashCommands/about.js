@@ -1,10 +1,10 @@
-const Command = require("../Structures/Command.js");
+const SlashCommand = require("../Structures/SlashCommand.js");
 
 const Discord = require("discord.js");
 
 const config = require("../Data/config.json");
 
-module.exports = new Command({
+module.exports = new SlashCommand({
     name: "about",
     description: "shows info about the bot",
     async run(message, args, client) {

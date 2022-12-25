@@ -1,4 +1,4 @@
-const Command = require("../Structures/Command.js");
+const SlashCommand = require("../Structures/SlashCommand.js");
 
 const Discord = require("discord.js");
 
@@ -6,7 +6,7 @@ const config = require("../Data/config.json");
 
 const { online, getWorld, getInstance } = require("../Classes/vrchat.js");
 
-module.exports = new Command({
+module.exports = new SlashCommand({
     name: "invite",
     description: "creates an invite to notas world",
 
@@ -46,7 +46,7 @@ module.exports = new Command({
             } else {
                 const embed = new Discord.MessageEmbed();
                 embed.setTitle(`❗No permission❗`)
-                .setDescription(`Ask users with the <@&930647071260823584> role to use this command.`)
+                .setDescription(`Ask users with the <@&930647071260823584> role to use this SlashCommand.`)
                 .setColor(config.color)
         
                 try {

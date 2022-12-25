@@ -1,4 +1,4 @@
-const Command = require("../Structures/Command.js");
+const SlashCommand = require("../Structures/SlashCommand.js");
 
 const Discord = require("discord.js");
 
@@ -6,7 +6,7 @@ const config = require("../Data/config.json");
 
 const { online } = require("../Classes/vrchat.js");
 
-module.exports = new Command({
+module.exports = new SlashCommand({
     name: "info",
     description: "gives you info about nota",
 

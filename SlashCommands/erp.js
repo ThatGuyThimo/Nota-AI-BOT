@@ -1,6 +1,6 @@
-const Command = require("../Structures/Command.js");
+const SlashCommand = require("../Structures/SlashCommand.js");
 
-module.exports = new Command({
+module.exports = new SlashCommand({
     name: "erp",
     description: "no no no no no",
 
