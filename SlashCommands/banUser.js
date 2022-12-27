@@ -1,13 +1,13 @@
 const SlashCommand = require("../Structures/SlashCommand.js");
 
-const { joinGroup, testJoinGroup } = require("../Classes/vrchat.js");
+const { joinGroup } = require("../Classes/vrchat.js");
 
 module.exports = new SlashCommand({
-    name: "joingroup",
-    description: "adds the user to the group",
+    name: "banuser",
+    description: "bans the user from discord and removes him from the nota ai vrchat group",
     options: [{
-        name: "username",
-        description: "enter your vrchat username",
+        name: "discordid",
+        description: "enter the users discord id you want to ban",
         type: 3,
         required: true
     },

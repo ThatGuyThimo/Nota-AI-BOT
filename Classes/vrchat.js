@@ -2,6 +2,8 @@ const vrchat = require("vrchat");
 
 const config = require("../Data/config.json");
 
+const { dbInsert, dbFindAndDelete } = require("./mongo.js");
+
 let lastTime = new Date
 let lastPing = new Date
 lastPing = lastPing.getTime()
@@ -26,28 +28,51 @@ AuthenticationApi.getCurrentUser().then(resp => {
 
 let state =  'offline';
 
-async function joinGroup(username) {
+function testJoinGroup() {
+
+    GroupApi.respondGroupJoinRequest("grp_6381f151-7124-4031-8b67-045da5a2dfc5", "usr_e3961c1a-5107-4494-8133-afe65712f4a8", '{"action" : "accept"}').then(result =>{
+        console.log(result, "result")
+
+    }).catch(error => {
+        console.log(error, "err")
+    })
+
+}
+
+
+async function joinGroup(username, message) {
 return new Promise((resolve, reject) => {
     GroupApi.getGroupRequests(config.groupId).then(result => {
         
-        // console.log(result.data)
-
         let index = 0
 
         result.data.forEach(async function (request) {
             index++
             if (request.user.displayName == username) {
-                await GroupApi.respondGroupJoinRequest(config.groupId, request.userId, "accept").then(
-                    resolve("accpeted")
-                ).catch(error => {
-                    console.log(error)
-                    reject(error)
+                dbInsert(message.user.username, message.user.id, request.user.displayName, request.userId).then(async function(result) {              
+                    await GroupApi.respondGroupJoinRequest(config.groupId, request.userId, '{"action" : "accept"}').then(result =>{
+                        resolve(`${username} accpeted.`)
+
+                    }).catch(error => {
+                        dbFindAndDelete(message.user.id, request.userId).then(result => {
+                            if (result == "Entry notfound") {
+                                console.warn(`${result} discordId:${message.user.id} vrchatId:${request.userId}`)
+                            }
+                            reject(error)
+                        }).catch(error =>{
+                            console.warn(error)
+                            reject(error)
+                        })
+                    })
+                }).catch(error => {
+                    resolve(error)
                 })
             } else if(index == result.data.length) {
                 resolve("User not found.")
             }
         }) 
     }).catch(error => {
+        console.log(error.data, "mango")
         reject(error)
     })
     
@@ -165,4 +190,4 @@ function sendPing(state, client) {
     }
 }
 
-module.exports = { online, onlineping, getWorld, getInstance, joinGroup }
+module.exports = { online, onlineping, getWorld, getInstance, joinGroup, testJoinGroup }
