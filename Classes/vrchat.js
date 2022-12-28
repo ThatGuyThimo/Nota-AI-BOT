@@ -90,41 +90,50 @@ return new Promise((resolve, reject) => {
 async function banUser(userId) {
     let reg = new RegExp('^usr_')
     return new Promise((resolve, reject) => {
-        if(reg.test()) {
-            dbFind("none", userId).then(user => {                
-                dbFindAndBan(user.discordId, user.vrchatId).then(result => {
-                    if (result == "User Banned.") {
-                        GroupApi.banGroupMember({'userId': user.vrchatId}).then(function() {
-                            resolve(`Banned user vrcn: ${user.vrchatName} dcn: ${user.discorName} .`)
-                        }).catch(error =>{
-                            console.warn(logError(error), "banUser")
-                            reject(error)
-                        })
-                    } else {
-                        resolve(result)
-                    }
-                }).catch(error => {
-                    resolve(error)
-                })
+        if(reg.test(userId)) {
+            dbFind("none", userId).then(user => {         
+                if (user.banned == null) {
+                    dbFindAndBan(user.discordId, user.vrchatId).then(result => {
+                        if (result == "User banned.") {
+                            GroupApi.banGroupMember(config.groupId, `{"userId" : "${user.vrchatId}"}`).then(function() {
+                                resolve(`Banned user vrcID: ${user.vrchatId} dcId: ${user.discordId} dcN: ${user.discordName} .`)
+                            }).catch(async function (error) {
+                                console.warn(await logError(error), "banUser")
+                                reject(error)
+                            })
+                        } else {
+                            resolve(result)
+                        }
+                    }).catch(error => {
+                        resolve(error)
+                    })
+                } else {
+                    resolve("User already banned.")
+                }      
             }).catch(error => {
                 reject(error)
             })
         } else {
-            dbFind(userId).then(user => {                
-                dbFindAndBan(user.discordId, user.vrchatId).then(result => {
-                    if (result == "User Banned.") {
-                        GroupApi.banGroupMember({'userId': user.vrchatId}).then(function() {
-                            resolve(`Banned user vrcn: ${user.vrchatName} dcn: ${user.discorName} .`)
-                        }).catch(error =>{
-                            console.warn(logError(error), "banUser")
-                            reject(error)
-                        })
-                    } else {
-                        resolve(result)
-                    }
-                }).catch(error => {
-                    resolve(error)
-                })
+            console.log("else")
+            dbFind(userId).then(user => {  
+                if (user.banned == null) {
+                    dbFindAndBan(user.discordId, user.vrchatId).then(result => {
+                        if (result == "User banned.") {
+                            GroupApi.banGroupMember(config.groupId, `{"userId" : "${user.vrchatId}"}`).then(function() {
+                                resolve(`Banned user vrcID: ${user.vrchatId} dcID: ${user.discordId} dcN: ${user.discordName} .`)
+                            }).catch(async function (error) {
+                                console.warn(await logError(error), "banUser")
+                                reject(error)
+                            })
+                        } else {
+                            resolve(result)
+                        }
+                    }).catch(error => {
+                        resolve(error)
+                    })
+                } else {
+                    resolve("User already banned.")
+                }
             }).catch(error => {
                 reject(error)
             })
@@ -152,7 +161,7 @@ async function connect(now) {
         lastTime = now
 
     } catch(error) {
-        console.warn(logError(error))
+        console.warn(await logError(error))
     }
 }
 
@@ -176,7 +185,7 @@ async function online() {
         resolve(resp.data)
      }).catch(async function(error) {
          await connect(now)
-         console.warn(logError(error), "online")
+         console.warn(await logError(error), "online")
         reject(error)
      })
     })
@@ -194,8 +203,8 @@ async function getWorld(worldId) {
     return new Promise((resolve, reject) => {
         WorldApi.getWorld(worldId).then(resp => {
             resolve(resp.data)
-        }).catch(error => {
-            console.warn(logError(error), "getWorldId")
+        }).catch(async function (error) {
+            console.warn(await logError(error), "getWorldId")
             reject(error)
         })
     })   
@@ -213,8 +222,8 @@ async function getInstance(worldId, instanceId) {
     return new Promise((resolve, reject) => {
         WorldApi.getWorldInstance(worldId, instanceId).then(resp => {
             resolve(resp.data)
-        }).catch(error => {
-            console.warn(logError(error), "getInstance")
+        }).catch(async function (error) {
+            console.warn(await logError(error), "getInstance")
             reject(error)
         })
     })
@@ -230,8 +239,8 @@ async function onlineping(client) {
             state = statenow.state;
             sendPing(state, client)
         }
-    }).catch(error => {
-        console.warn(logError(error), "onlineping")
+    }).catch(async function (error) {
+        console.warn(await logError(error), "onlineping")
     });
 }
 
@@ -240,7 +249,7 @@ async function onlineping(client) {
  * @param {String} state Online state of the My lIttle Nota account.
  * @param {Object} client Discord client.
  */
-function sendPing(state, client) {
+async function sendPing(state, client) {
     try {
         now = new Date
         switch(state){
@@ -266,7 +275,7 @@ function sendPing(state, client) {
                 break
         }
     } catch (error) {
-        console.warn(logError(error), "SendPing")
+        console.warn(await logError(error), "SendPing")
     }
 }
 

@@ -35,7 +35,6 @@ async function logError(value) {
                     console.log(error)
                     reject(false)
                 }
-                fs.close()
                 resolve(fileName)
             })
         }

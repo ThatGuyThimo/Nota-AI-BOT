@@ -90,12 +90,12 @@ async function dbFindAndBan(discordId = "none", vrchatId = "none") {
             const users = database.collection('users');
             
             if (discordId != "none") {
-                const banByDiscordId = users.findOneAndUpdate({"discordId": discordId}, { $set: {"banned": "yes"}});
-                console.log(banByDiscordId, "banByDiscordId")
+                const banByDiscordId = await users.findOneAndUpdate({"discordId": discordId}, { $set: {"banned": "yes"}});
+                // console.log(banByDiscordId, "banByDiscordId")
                 resolve("User banned.")
             } else if( vrchatId != "none") {
-                const banByVrchatId = users.findOneAndUpdate({"vrchatId": vrchatId}, { $set: {"banned": "yes"}});
-                console.log(banByVrchatId, "banByVrchatId")
+                const banByVrchatId = await users.findOneAndUpdate({"vrchatId": vrchatId}, { $set: {"banned": "yes"}});
+                // console.log(banByVrchatId, "banByVrchatId")
                 resolve("User banned.")
             } else {
                 resolve("User notfound.")
@@ -120,13 +120,13 @@ async function dbFind(discordId = "none", vrchatId = "none") {
             const users = database.collection('users');
             
             if (discordId != "none") {
-                const searchByDiscordId = users.findOne({"discordId": discordId});
-                console.log(searchByDiscordId, "banByDiscordId")
-                resolve(searchByDiscordId)
+                const findByDiscordId = users.findOne({"discordId": discordId});
+                // console.log(findByDiscordId, "findByDiscordId")
+                resolve(findByDiscordId)
             } else if( vrchatId != "none") {
-                const searchByVrchatId = users.findOne({"vrchatId": vrchatId});
-                console.log(searchByVrchatId, "banByVrchatId")
-                resolve(searchByVrchatId)
+                const findByVrchatId = users.findOne({"vrchatId": vrchatId});
+                // console.log(findByVrchatId, "findByVrchatId")
+                resolve(findByVrchatId)
             } else {
                 resolve("User notfound.")
             }

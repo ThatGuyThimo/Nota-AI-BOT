@@ -15,13 +15,20 @@ module.exports = new SlashCommand({
 
     async run(message, args, client) {
         try {
-            result = await banUser(args[0].value)
-
-            message.reply(`${result}`);
+            if(message.member.permissions.has("ADMINISTRATOR")) {
+                try {
+                    result = await banUser(args[0].value)
+        
+                    message.reply(`${result}`);
+                } catch(error) {
+                    message.reply('Something went wrong')
+                }
+            } else {
+            message.reply("You don't have permission to use this SlashCommand!");
+            }
         } catch(error) {
+            console.warn(error)
             message.reply('Something went wrong')
         }
-
     }
-
 });
