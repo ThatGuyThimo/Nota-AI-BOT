@@ -80,12 +80,10 @@ module.exports = new SlashCommand({
                 try {
                     message.reply({ embeds: [embed] });
                 } catch(error) {
-                    console.warn(error)
                     message.reply("Something went wrong")
                 }
             });
         }).catch(error => {
-            console.warn(error)
             message.reply("Something went wrong")
         });
     } else {
