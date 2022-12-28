@@ -1,13 +1,13 @@
 const SlashCommand = require("../Structures/SlashCommand.js");
 
-const { joinGroup } = require("../Classes/vrchat.js");
+const { banUser } = require("../Classes/vrchat.js");
 
 module.exports = new SlashCommand({
     name: "banuser",
-    description: "bans the user from discord and removes him from the nota ai vrchat group",
+    description: "bans the user from the nota ai vrchat group, takes vrchatid or discordid",
     options: [{
-        name: "discordid",
-        description: "enter the users discord id you want to ban",
+        name: "userid",
+        description: "enter the users discord id or vrchat id you want to ban",
         type: 3,
         required: true
     },
@@ -15,11 +15,10 @@ module.exports = new SlashCommand({
 
     async run(message, args, client) {
         try {
-            result = await joinGroup(args[0].value, message)
+            result = await banUser(args[0].value)
 
-            message.reply(`Ran joinGroups() result: ${result}`);
+            message.reply(`${result}`);
         } catch(error) {
-            console.warn(error)
             message.reply('Something went wrong')
         }
 

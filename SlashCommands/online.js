@@ -12,7 +12,6 @@ module.exports = new SlashCommand({
 
             message.reply(`Nota AI is ${data.state}`);
         } catch(error) {
-            console.warn(error)
             message.reply('Something went wrong.')
         }
 

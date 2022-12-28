@@ -2,7 +2,9 @@ const vrchat = require("vrchat");
 
 const config = require("../Data/config.json");
 
-const { dbInsert, dbFindAndDelete } = require("./mongo.js");
+const { dbInsert, dbFindAndDelete, dbFindAndBan, dbFind } = require("./mongo.js");
+const { logError } = require("./errorLogging.js");
+
 
 let lastTime = new Date
 let lastPing = new Date
@@ -28,51 +30,51 @@ AuthenticationApi.getCurrentUser().then(resp => {
 
 let state =  'offline';
 
-function testJoinGroup() {
-
-    GroupApi.respondGroupJoinRequest("grp_6381f151-7124-4031-8b67-045da5a2dfc5", "usr_e3961c1a-5107-4494-8133-afe65712f4a8", '{"action" : "accept"}').then(result =>{
-        console.log(result, "result")
-
-    }).catch(error => {
-        console.log(error, "err")
-    })
-
-}
-
-
-async function joinGroup(username, message) {
+/**
+ * 
+ * @param {String} username VRChat username to be accepted in to the VRChat group. 
+ * @param {Object} client Discord client object.
+ * @returns String Completion status.
+ */
+async function joinGroup(username, client) {
 return new Promise((resolve, reject) => {
     GroupApi.getGroupRequests(config.groupId).then(result => {
         
         let index = 0
+        let requestExists = false
 
         result.data.forEach(async function (request) {
             index++
             if (request.user.displayName == username) {
-                dbInsert(message.user.username, message.user.id, request.user.displayName, request.userId).then(async function(result) {              
-                    await GroupApi.respondGroupJoinRequest(config.groupId, request.userId, '{"action" : "accept"}').then(result =>{
-                        resolve(`${username} accpeted.`)
-
-                    }).catch(error => {
-                        dbFindAndDelete(message.user.id, request.userId).then(result => {
-                            if (result == "Entry notfound") {
-                                console.warn(`${result} discordId:${message.user.id} vrchatId:${request.userId}`)
-                            }
-                            reject(error)
-                        }).catch(error =>{
-                            console.warn(error)
-                            reject(error)
+                requestExists = true
+                dbInsert(client.user.username, client.user.id, request.user.displayName, request.userId).then(async function(result) { 
+                    if (result == "User already registered.") {
+                        resolve(result)
+                    } else if (result == "User is banned.") {
+                        resolve(result)
+                    } else {
+                        await GroupApi.respondGroupJoinRequest(config.groupId, request.userId, '{"action" : "accept"}').then(result =>{
+                            resolve(`${username} accpeted.`)
+    
+                        }).catch(error => {
+                            dbFindAndDelete(client.user.id, request.userId).then(result => {
+                                if (result == "Entry notfound") {
+                                    console.warn(`${result} discordId:${client.user.id} vrchatId:${request.userId}`)
+                                }
+                                reject(error)
+                            }).catch(error =>{
+                                reject(error)
+                            })
                         })
-                    })
+                    }
                 }).catch(error => {
                     resolve(error)
                 })
-            } else if(index == result.data.length) {
-                resolve("User not found.")
+            } else if(index == result.data.length && requestExists == false) {
+                resolve("User not found. Did you request to join the VRChat group?")
             }
         }) 
     }).catch(error => {
-        console.log(error.data, "mango")
         reject(error)
     })
     
@@ -80,6 +82,60 @@ return new Promise((resolve, reject) => {
 }
 
 
+/**
+ * 
+ * @param {String} userId vrchatId or discorId .
+ * @returns 
+ */
+async function banUser(userId) {
+    let reg = new RegExp('^usr_')
+    return new Promise((resolve, reject) => {
+        if(reg.test()) {
+            dbFind("none", userId).then(user => {                
+                dbFindAndBan(user.discordId, user.vrchatId).then(result => {
+                    if (result == "User Banned.") {
+                        GroupApi.banGroupMember({'userId': user.vrchatId}).then(function() {
+                            resolve(`Banned user vrcn: ${user.vrchatName} dcn: ${user.discorName} .`)
+                        }).catch(error =>{
+                            console.warn(logError(error), "banUser")
+                            reject(error)
+                        })
+                    } else {
+                        resolve(result)
+                    }
+                }).catch(error => {
+                    resolve(error)
+                })
+            }).catch(error => {
+                reject(error)
+            })
+        } else {
+            dbFind(userId).then(user => {                
+                dbFindAndBan(user.discordId, user.vrchatId).then(result => {
+                    if (result == "User Banned.") {
+                        GroupApi.banGroupMember({'userId': user.vrchatId}).then(function() {
+                            resolve(`Banned user vrcn: ${user.vrchatName} dcn: ${user.discorName} .`)
+                        }).catch(error =>{
+                            console.warn(logError(error), "banUser")
+                            reject(error)
+                        })
+                    } else {
+                        resolve(result)
+                    }
+                }).catch(error => {
+                    resolve(error)
+                })
+            }).catch(error => {
+                reject(error)
+            })
+        }
+    })
+}
+
+/**
+ * 
+ * @param {Date} now Date in .getTime() format.
+ */
 async function connect(now) {
     try {
         console.log("Re initializing api.")
@@ -96,13 +152,13 @@ async function connect(now) {
         lastTime = now
 
     } catch(error) {
-        console.warn(error)
+        console.warn(logError(error))
     }
 }
 
 /**
  * 
- * @returns vrchat api data abou the user
+ * @returns VRChat api data abou the user.
  */
 async function online() {
     let now = new Date
@@ -120,11 +176,17 @@ async function online() {
         resolve(resp.data)
      }).catch(async function(error) {
          await connect(now)
+         console.warn(logError(error), "online")
         reject(error)
      })
     })
 }
 
+/**
+ * 
+ * @param {String} worldId VRChat api world id.
+ * @returns VRChat api world information.
+ */
 async function getWorld(worldId) {
     if(worldId == "private"){return {"name": "Private"}}
     if(worldId == "offline"){return {"name": "Offline"}}
@@ -133,10 +195,18 @@ async function getWorld(worldId) {
         WorldApi.getWorld(worldId).then(resp => {
             resolve(resp.data)
         }).catch(error => {
+            console.warn(logError(error), "getWorldId")
             reject(error)
         })
     })   
 }
+
+/**
+ * 
+ * @param {String} worldId VRChat api world id.
+ * @param {String} instanceId VRChat api instanse id.
+ * @returns 
+ */
 async function getInstance(worldId, instanceId) {
     if(worldId == "private" || worldId == "offline"){return {"name": ""}}
     
@@ -144,6 +214,7 @@ async function getInstance(worldId, instanceId) {
         WorldApi.getWorldInstance(worldId, instanceId).then(resp => {
             resolve(resp.data)
         }).catch(error => {
+            console.warn(logError(error), "getInstance")
             reject(error)
         })
     })
@@ -151,7 +222,7 @@ async function getInstance(worldId, instanceId) {
 
 /**
  * 
- * @param {Client} client 
+ * @param {Client} client Discord client.
  */
 async function onlineping(client) {
     await online().then(statenow => {
@@ -160,34 +231,43 @@ async function onlineping(client) {
             sendPing(state, client)
         }
     }).catch(error => {
-        console.warn(error)
+        console.warn(logError(error), "onlineping")
     });
 }
 
+/**
+ * 
+ * @param {String} state Online state of the My lIttle Nota account.
+ * @param {Object} client Discord client.
+ */
 function sendPing(state, client) {
-    now = new Date
-    switch(state){
-        case "online":
-            if (lastPing < now.getTime()) {
-                console.log()
-                client.channels.cache.get('927271117155074158').send(`<@&924403524027154513> nota is online`);
-                client.channels.cache.get('923611865001631764').send(`<@&924403524027154513> nota is online`);
-
-                lastPing = now.getTime() + config.pingTimout
-            } else {
-                client.channels.cache.get('927271117155074158').send(`nota is online`);
-                client.channels.cache.get('923611865001631764').send(`nota is online`);
-            }
-            break
-        case "active":
-            client.channels.cache.get('927271117155074158').send(`nota is active`);
-            client.channels.cache.get('923611865001631764').send(`nota is active`);
-            break
-        default:
-            client.channels.cache.get('927271117155074158').send(`nota is offline`);
-            client.channels.cache.get('923611865001631764').send(`nota is offline`);
-            break
+    try {
+        now = new Date
+        switch(state){
+            case "online":
+                if (lastPing < now.getTime()) {
+                    console.log()
+                    client.channels.cache.get('927271117155074158').send(`<@&924403524027154513> nota is online`);
+                    client.channels.cache.get('923611865001631764').send(`<@&924403524027154513> nota is online`);
+    
+                    lastPing = now.getTime() + config.pingTimout
+                } else {
+                    client.channels.cache.get('927271117155074158').send(`nota is online`);
+                    client.channels.cache.get('923611865001631764').send(`nota is online`);
+                }
+                break
+            case "active":
+                client.channels.cache.get('927271117155074158').send(`nota is active`);
+                client.channels.cache.get('923611865001631764').send(`nota is active`);
+                break
+            default:
+                client.channels.cache.get('927271117155074158').send(`nota is offline`);
+                client.channels.cache.get('923611865001631764').send(`nota is offline`);
+                break
+        }
+    } catch (error) {
+        console.warn(logError(error), "SendPing")
     }
 }
 
-module.exports = { online, onlineping, getWorld, getInstance, joinGroup, testJoinGroup }
+module.exports = { online, onlineping, getWorld, getInstance, joinGroup, banUser }

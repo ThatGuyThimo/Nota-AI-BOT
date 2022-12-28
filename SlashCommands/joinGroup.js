@@ -1,10 +1,10 @@
 const SlashCommand = require("../Structures/SlashCommand.js");
 
-const { joinGroup, testJoinGroup } = require("../Classes/vrchat.js");
+const { joinGroup } = require("../Classes/vrchat.js");
 
 module.exports = new SlashCommand({
     name: "joingroup",
-    description: "adds the user to the group",
+    description: "adds the user to the nota ai vrchat group",
     options: [{
         name: "username",
         description: "enter your vrchat username",
@@ -17,9 +17,9 @@ module.exports = new SlashCommand({
         try {
             result = await joinGroup(args[0].value, message)
 
-            message.reply(`Ran joinGroups() result: ${result}`);
+            message.reply(`${result}`);
         } catch(error) {
-            console.warn(error)
+            console.warn(logError(error))
             message.reply('Something went wrong')
         }
 
