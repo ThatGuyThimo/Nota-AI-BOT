@@ -1,8 +1,10 @@
 const Discord = require("discord.js");
 
-const { REST } = require("@discordjs/rest");
+const { REST, Routes } = require("discord.js");
 
-const { Routes } = require('discord-api-types/v10');
+// const { REST } = require("@discordjs/rest");
+
+// const { Routes } = require('discord-api-types/v10');
 
 const Command = require("./Command.js");
 
@@ -12,7 +14,7 @@ const SlashCommand = require("./SlashCommand.js");
 
 const config = require("../Data/config.json");
 
-const intents = new Discord.Intents(8);
+const intents = new Discord.IntentsBitField(8);
 
 const fs = require("fs");
 
@@ -97,7 +99,7 @@ class Client extends Discord.Client {
         })();
 
         this.on('interactionCreate', (interaction) => {
-            if (interaction.isApplicationCommand()) {
+            if (interaction.isChatInputCommand()) {
 
                 const Scommand = this.slashcommands.find(cmd => cmd.name == interaction.commandName);
 

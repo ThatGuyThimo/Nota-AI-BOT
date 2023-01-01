@@ -14,18 +14,18 @@ module.exports = new SlashCommand({
         try {
             data = await online()
     
-            const embed = new Discord.MessageEmbed();
-    
-            embed.setTitle(`About Nota AI,`)
-                .setAuthor(
-                    message.user.username,
-                    message.user.avatarURL()
-                )
+            const embed = new Discord.EmbedBuilder()
+
+                .setTitle(`About Nota AI,`)
+                .setAuthor({
+                    name : message.user.tag,
+                    iconURL : message.user.avatarURL()
+                })
                 .setDescription(`Information about Nota AI`)
                 .setColor(config.color)
                 .setThumbnail(client.user.avatarURL({ dynamic: true }))
-                .setTimestamp(message.createdTimestamp)
-                .addFields(
+                .setTimestamp()
+                .addFields([
                     {
                         name: "Date joined",
                         value: `${data.date_joined}`,
@@ -56,7 +56,7 @@ module.exports = new SlashCommand({
                         value: `${data.bio}`,
                         inline: false
                     },
-                );
+                ]);
                 
                 message.reply({ embeds: [embed] });
 

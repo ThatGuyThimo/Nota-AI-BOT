@@ -10,8 +10,7 @@ module.exports = new SlashCommand({
         description: "enter your vrchat username",
         type: 3,
         required: true
-    },
-    ],
+    },],
 
     async run(message, args, client) {
         try {

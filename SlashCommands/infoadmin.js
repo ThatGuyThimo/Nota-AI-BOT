@@ -9,30 +9,28 @@ const { online, getWorld, getInstance } = require("../Classes/vrchat.js");
 module.exports = new SlashCommand({
     name: "infoadmin",
     description: "gives you info about nota",
+    default_member_permissions: Discord.PermissionFlagsBits.Administrator,
 
     async run(message, args, client) {
         try {
 
             data = await online()
     
-    
-            if(message.member.permissions.has("ADMINISTRATOR")) {
-    
-            const embed = new Discord.MessageEmbed();
-            await getWorld(data.worldId).then(async function(world) {
-    
-                await getInstance(data.worldId, data.instanceId).then(instance => {
-    
-                    embed.setTitle(`About Nota AI,`)
-                        .setAuthor(
-                            message.user.username,
-                            message.user.avatarURL()
-                        )
+                await getWorld(data.worldId).then(async function(world) {
+                    
+                    await getInstance(data.worldId, data.instanceId).then(instance => {
+                        
+                        const embed = new Discord.EmbedBuilder()
+                        .setTitle(`About Nota AI,`)
+                        .setAuthor({
+                            name : message.user.tag,
+                            iconURL : message.user.avatarURL()
+                        })
                         .setDescription(`Information about Nota AI`)
                         .setColor(config.color)
                         .setThumbnail(client.user.avatarURL({ dynamic: true }))
-                        .setTimestamp(message.createdTimestamp)
-                        .addFields(
+                        .setTimestamp()
+                        .addFields([
                             {
                                 name: "date joined",
                                 value: `${data.date_joined}`,
@@ -78,7 +76,7 @@ module.exports = new SlashCommand({
                                 value: `${data.bio}`,
                                 inline: false
                             }
-                        );
+                        ]);
                     try {
                         message.reply({ embeds: [embed] });
                     } catch(error) {
@@ -88,9 +86,6 @@ module.exports = new SlashCommand({
             }).catch(error => {
                 message.reply("Something went wrong")
             });
-        } else {
-            message.reply("You don't have permission to use this SlashCommand!");
-        }
     } catch(error) {
         console.warn(error)
         message.reply('Something went wrong')
