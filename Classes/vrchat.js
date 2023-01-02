@@ -93,25 +93,25 @@ async function banUser(userId) {
         if(reg.test(userId)) {
             dbFind("none", userId).then(user => {  
                 if (user == "User notfound.") {
-                    resolve(user)
+                    resolve(`{"result": "${user}"}`)
                 } else {
                     if (user.banned == null) {
                         dbFindAndBan(user.discordId, user.vrchatId).then(result => {
                             if (result == "User banned.") {
                                 GroupApi.banGroupMember(config.groupId, `{"userId" : "${user.vrchatId}"}`).then(function() {
-                                    resolve(`Banned user vrcID: ${user.vrchatId} dcId: ${user.discordId} dcN: ${user.discordName} .`)
+                                    resolve(`{"result": "User banned", "vrcID": "${user.vrchatId}", "vrcN": "${user.vrchatName}", "dcID": "${user.discordId}", "dcN": "${user.discordName}"}`)
                                 }).catch(async function (error) {
                                     console.warn(await logError(error), "banUser")
                                     reject(error)
                                 })
                             } else {
-                                resolve(result)
+                                resolve(`"result": "${result}}"`)
                             }
                         }).catch(error => {
-                            resolve(error)
+                            resolve(`"result": "${error}"`)
                         })
                     } else {
-                        resolve("User already banned.")
+                        resolve("{'result': 'User already banned.')")
                     }      
                 }    
             }).catch(error => {
@@ -120,25 +120,25 @@ async function banUser(userId) {
         } else {
             dbFind(userId).then(user => {  
                 if (user == "User notfound.") {
-                    resolve(user)
+                    resolve(`{"result": "${user}"}`)
                 } else {
                     if (user.banned == null) {
                         dbFindAndBan(user.discordId, user.vrchatId).then(result => {
                             if (result == "User banned.") {
                                 GroupApi.banGroupMember(config.groupId, `{"userId" : "${user.vrchatId}"}`).then(function() {
-                                    resolve(`Banned user vrcID: ${user.vrchatId} dcID: ${user.discordId} dcN: ${user.discordName} .`)
+                                    resolve(`{"result": "User banned", "vrcID": "${user.vrchatId}", "vrcN": "${user.vrchatName}", "dcID": "${user.discordId}", "dcN": "${user.discordName}"}`)
                                 }).catch(async function (error) {
                                     console.warn(await logError(error), "banUser")
                                     reject(error)
                                 })
                             } else {
-                                resolve(result)
+                                resolve(`"result": "${result}}"`)
                             }
                         }).catch(error => {
-                            resolve(error)
+                            resolve(`"result": "${error}"`)
                         })
                     } else {
-                        resolve("User already banned.")
+                        resolve("{'result': 'User already banned.')")
                     }
                 }
             }).catch(error => {
@@ -158,25 +158,25 @@ async function unbanUser(userId) {
         if(reg.test(userId)) {
             dbFind("none", userId).then(user => {  
                 if (user == "User notfound.") {
-                    resolve(user)
+                    resolve(`{"result": "${user}"}`)
                 } else {
                     if (user.banned == "yes") {
                         dbFindAndUnban(user.discordId, user.vrchatId).then(result => {
                             if (result == "User unbanned.") {
                                 GroupApi.unbanGroupMember(config.groupId, user.vrchatId).then(function() {
-                                    resolve(`Unbanned user vrcID: ${user.vrchatId} dcId: ${user.discordId} dcN: ${user.discordName} .`)
+                                    resolve(`{"result": "User unbanned", "vrcID": "${user.vrchatId}", "vrcN": "${user.vrchatName}", "dcID": "${user.discordId}", "dcN": "${user.discordName}"}`)
                                 }).catch(async function (error) {
                                     console.warn(await logError(error), "unbanUser")
                                     reject(error)
                                 })
                             } else {
-                                resolve(result)
+                                resolve(`{"result": ${result}}`)
                             }
                         }).catch(error => {
-                            resolve(error)
+                            resolve(`{"result": "${error}"}`)
                         })
                     } else {
-                        resolve("User not banned.")
+                        resolve('{"result": "User not banned."}')
                     }      
                 }    
             }).catch(error => {
@@ -185,25 +185,25 @@ async function unbanUser(userId) {
         } else {
             dbFind(userId).then(user => {  
                 if (user == "User notfound.") {
-                    resolve(user)
+                    resolve(`{"result": "${user}"}`)
                 } else {
                     if (user.banned == "yes") {
                         dbFindAndUnban(user.discordId, user.vrchatId).then(result => {
                             if (result == "User unbanned.") {
                                 GroupApi.unbanGroupMember(config.groupId, user.vrchatId).then(function() {
-                                    resolve(`Unbanned user vrcID: ${user.vrchatId} dcID: ${user.discordId} dcN: ${user.discordName} .`)
+                                    resolve(`{"result": "User unbanned", "vrcID": "${user.vrchatId}", "vrcN": "${user.vrchatName}", "dcID": "${user.discordId}", "dcN": "${user.discordName}"}`)
                                 }).catch(async function (error) {
                                     console.warn(await logError(error), "unbanUser")
                                     reject(error)
                                 })
                             } else {
-                                resolve(result)
+                                resolve(`{"result": "${result}"}`)
                             }
                         }).catch(error => {
-                            resolve(error)
+                            resolve(`{"result": "${error}"}`)
                         })
                     } else {
-                        resolve("User not banned.")
+                        resolve('{"result": "User not banned."}')
                     }
                 }
             }).catch(error => {

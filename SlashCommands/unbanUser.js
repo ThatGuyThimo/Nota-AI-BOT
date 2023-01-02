@@ -2,6 +2,8 @@ const SlashCommand = require("../Structures/SlashCommand.js");
 
 const { unbanUser } = require("../Classes/vrchat.js");
 
+const config = require("../Data/config.json");
+
 const Discord = require("discord.js");
 
 module.exports = new SlashCommand({
@@ -24,15 +26,59 @@ module.exports = new SlashCommand({
 
         if(await member.roles.cache.has('923464931628683264')) {
         
-            result = await unbanUser(args[0].value)
+            let result = await unbanUser(args[0].value)
+            result = await JSON.parse(result)
 
-            message.reply(`${result}`);
+            if (result.result == "User unbanned") {
+
+                const fetchedMember = await message.guild.members.fetch(result.dcID);
+
+                const embed = new Discord.EmbedBuilder()
+
+                .setTitle(`Unbanned user ${fetchedMember.user.tag}`)
+                .setAuthor({
+                    name : message.user.tag,
+                    iconURL : message.user.avatarURL()
+                })
+                .setColor(config.color)
+                .setThumbnail(fetchedMember.user.avatarURL({ dynamic: true }))
+                .setTimestamp()
+                .addFields([
+                    {
+                        name: "Discord Name",
+                        value: `${result.dcN}`,
+                        inline: true
+                    },
+                    {
+                        name: "Discord ID",
+                        value: `${result.dcID}`,
+                        inline: true
+                    },
+                    {
+                        name: "Vrchat Name",
+                        value: `${result.vrcN}`,
+                        inline: true
+                    },
+                    {
+                        name: "Vrchat ID",
+                        value: `[${result.vrcID}](https://vrchat.com/home/user/${result.vrcID})`,
+                        inline: true
+                    },
+                ]);
+            try {
+                message.reply({ embeds: [embed] });
+            } catch {
+                console.log('something went wrong, user still unbanned.')
+            }
+            } else {
+                message.reply(`${result.result}`);
+            }
         } else {
             message.reply('No permission.')
         }
         } catch(error) {
             console.log(error)
-            message.reply('Something went wrong')
+            message.reply('Something went wrong, user still unbanned.')
         }            
     }
 });
