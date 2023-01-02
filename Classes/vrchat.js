@@ -2,7 +2,7 @@ const vrchat = require("vrchat");
 
 const config = require("../Data/config.json");
 
-const { dbInsert, dbFindAndDelete, dbFindAndBan, dbFind } = require("./mongo.js");
+const { dbInsert, dbFindAndDelete, dbFindAndBan, dbFindAndUnban, dbFind } = require("./mongo.js");
 const { logError } = require("./errorLogging.js");
 
 
@@ -91,48 +91,120 @@ async function banUser(userId) {
     let reg = new RegExp('^usr_')
     return new Promise((resolve, reject) => {
         if(reg.test(userId)) {
-            dbFind("none", userId).then(user => {         
-                if (user.banned == null) {
-                    dbFindAndBan(user.discordId, user.vrchatId).then(result => {
-                        if (result == "User banned.") {
-                            GroupApi.banGroupMember(config.groupId, `{"userId" : "${user.vrchatId}"}`).then(function() {
-                                resolve(`Banned user vrcID: ${user.vrchatId} dcId: ${user.discordId} dcN: ${user.discordName} .`)
-                            }).catch(async function (error) {
-                                console.warn(await logError(error), "banUser")
-                                reject(error)
-                            })
-                        } else {
-                            resolve(result)
-                        }
-                    }).catch(error => {
-                        resolve(error)
-                    })
+            dbFind("none", userId).then(user => {  
+                if (user == "User notfound.") {
+                    resolve(user)
                 } else {
-                    resolve("User already banned.")
-                }      
+                    if (user.banned == null) {
+                        dbFindAndBan(user.discordId, user.vrchatId).then(result => {
+                            if (result == "User banned.") {
+                                GroupApi.banGroupMember(config.groupId, `{"userId" : "${user.vrchatId}"}`).then(function() {
+                                    resolve(`Banned user vrcID: ${user.vrchatId} dcId: ${user.discordId} dcN: ${user.discordName} .`)
+                                }).catch(async function (error) {
+                                    console.warn(await logError(error), "banUser")
+                                    reject(error)
+                                })
+                            } else {
+                                resolve(result)
+                            }
+                        }).catch(error => {
+                            resolve(error)
+                        })
+                    } else {
+                        resolve("User already banned.")
+                    }      
+                }    
             }).catch(error => {
                 reject(error)
             })
         } else {
-            console.log("else")
             dbFind(userId).then(user => {  
-                if (user.banned == null) {
-                    dbFindAndBan(user.discordId, user.vrchatId).then(result => {
-                        if (result == "User banned.") {
-                            GroupApi.banGroupMember(config.groupId, `{"userId" : "${user.vrchatId}"}`).then(function() {
-                                resolve(`Banned user vrcID: ${user.vrchatId} dcID: ${user.discordId} dcN: ${user.discordName} .`)
-                            }).catch(async function (error) {
-                                console.warn(await logError(error), "banUser")
-                                reject(error)
-                            })
-                        } else {
-                            resolve(result)
-                        }
-                    }).catch(error => {
-                        resolve(error)
-                    })
+                if (user == "User notfound.") {
+                    resolve(user)
                 } else {
-                    resolve("User already banned.")
+                    if (user.banned == null) {
+                        dbFindAndBan(user.discordId, user.vrchatId).then(result => {
+                            if (result == "User banned.") {
+                                GroupApi.banGroupMember(config.groupId, `{"userId" : "${user.vrchatId}"}`).then(function() {
+                                    resolve(`Banned user vrcID: ${user.vrchatId} dcID: ${user.discordId} dcN: ${user.discordName} .`)
+                                }).catch(async function (error) {
+                                    console.warn(await logError(error), "banUser")
+                                    reject(error)
+                                })
+                            } else {
+                                resolve(result)
+                            }
+                        }).catch(error => {
+                            resolve(error)
+                        })
+                    } else {
+                        resolve("User already banned.")
+                    }
+                }
+            }).catch(error => {
+                reject(error)
+            })
+        }
+    })
+}
+/**
+ * 
+ * @param {String} userId vrchatId or discorId .
+ * @returns 
+ */
+async function unbanUser(userId) {
+    let reg = new RegExp('^usr_')
+    return new Promise((resolve, reject) => {
+        if(reg.test(userId)) {
+            dbFind("none", userId).then(user => {  
+                if (user == "User notfound.") {
+                    resolve(user)
+                } else {
+                    if (user.banned == "yes") {
+                        dbFindAndUnban(user.discordId, user.vrchatId).then(result => {
+                            if (result == "User unbanned.") {
+                                GroupApi.unbanGroupMember(config.groupId, user.vrchatId).then(function() {
+                                    resolve(`Unbanned user vrcID: ${user.vrchatId} dcId: ${user.discordId} dcN: ${user.discordName} .`)
+                                }).catch(async function (error) {
+                                    console.warn(await logError(error), "unbanUser")
+                                    reject(error)
+                                })
+                            } else {
+                                resolve(result)
+                            }
+                        }).catch(error => {
+                            resolve(error)
+                        })
+                    } else {
+                        resolve("User not banned.")
+                    }      
+                }    
+            }).catch(error => {
+                reject(error)
+            })
+        } else {
+            dbFind(userId).then(user => {  
+                if (user == "User notfound.") {
+                    resolve(user)
+                } else {
+                    if (user.banned == "yes") {
+                        dbFindAndUnban(user.discordId, user.vrchatId).then(result => {
+                            if (result == "User unbanned.") {
+                                GroupApi.unbanGroupMember(config.groupId, user.vrchatId).then(function() {
+                                    resolve(`Unbanned user vrcID: ${user.vrchatId} dcID: ${user.discordId} dcN: ${user.discordName} .`)
+                                }).catch(async function (error) {
+                                    console.warn(await logError(error), "unbanUser")
+                                    reject(error)
+                                })
+                            } else {
+                                resolve(result)
+                            }
+                        }).catch(error => {
+                            resolve(error)
+                        })
+                    } else {
+                        resolve("User not banned.")
+                    }
                 }
             }).catch(error => {
                 reject(error)
@@ -251,27 +323,33 @@ async function onlineping(client) {
  */
 async function sendPing(state, client) {
     try {
+
+        await client.channels.fetch('927271117155074158')
+        await client.channels.fetch('923611865001631764')
+        adminChannel = await client.channels.cache.get('927271117155074158')
+        userChannel = await client.channels.cache.get('923611865001631764')
+
         now = new Date
         switch(state){
             case "online":
                 if (lastPing < now.getTime()) {
                     console.log()
-                    client.channels.cache.get('927271117155074158').send(`<@&924403524027154513> nota is online`);
-                    client.channels.cache.get('923611865001631764').send(`<@&924403524027154513> nota is online`);
+                    adminChannel.send(`<@&924403524027154513> nota is online`);
+                    userChannel.send(`<@&924403524027154513> nota is online`);
     
                     lastPing = now.getTime() + config.pingTimout
                 } else {
-                    client.channels.cache.get('927271117155074158').send(`nota is online`);
-                    client.channels.cache.get('923611865001631764').send(`nota is online`);
+                    adminChannel.send(`nota is online`);
+                    userChannel.send(`nota is online`);
                 }
                 break
             case "active":
-                client.channels.cache.get('927271117155074158').send(`nota is active`);
-                client.channels.cache.get('923611865001631764').send(`nota is active`);
+                adminChannel.send(`nota is active`);
+                userChannel.send(`nota is active`);
                 break
             default:
-                client.channels.cache.get('927271117155074158').send(`nota is offline`);
-                client.channels.cache.get('923611865001631764').send(`nota is offline`);
+                adminChannel.send(`nota is offline`);
+                userChannel.send(`nota is offline`);
                 break
         }
     } catch (error) {
@@ -279,4 +357,4 @@ async function sendPing(state, client) {
     }
 }
 
-module.exports = { online, onlineping, getWorld, getInstance, joinGroup, banUser }
+module.exports = { online, onlineping, getWorld, getInstance, joinGroup, banUser, unbanUser }

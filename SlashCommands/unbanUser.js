@@ -1,16 +1,16 @@
 const SlashCommand = require("../Structures/SlashCommand.js");
 
-const { banUser } = require("../Classes/vrchat.js");
+const { unbanUser } = require("../Classes/vrchat.js");
 
 const Discord = require("discord.js");
 
 module.exports = new SlashCommand({
-    name: "banuser",
-    description: "bans the user from the nota ai vrchat group, takes vrchatid or discordid",
+    name: "unbanuser",
+    description: "unbans the user from the nota ai vrchat group, takes vrchatid or discordid",
     default_member_permissions: Discord.PermissionFlagsBits.Administrator,
     options: [{
         name: "userid",
-        description: "enter the users discord id or vrchat id you want to ban",
+        description: "enter the users discord id or vrchat id you want to unban",
         type: 3,
         required: true
     },
@@ -24,7 +24,7 @@ module.exports = new SlashCommand({
 
         if(await member.roles.cache.has('923464931628683264')) {
         
-            result = await banUser(args[0].value)
+            result = await unbanUser(args[0].value)
 
             message.reply(`${result}`);
         } else {
