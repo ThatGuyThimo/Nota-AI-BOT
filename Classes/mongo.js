@@ -24,6 +24,7 @@ async function dbInsert(discordName, discordId, vrchatName, vrchatId) {
             if (getUser == null) {
                 getUser = await users.findOne({"vrchatId": vrchatId });
             }
+            console.log(getUser)
         
             if ( getUser == null) {
                 const query = {discordName:`${discordName}`, discordId: discordId , vrchatName:`${vrchatName}`, vrchatId: vrchatId }
@@ -71,7 +72,7 @@ async function dbFindAndDelete(discordId = "none", vrchatId = "none") {
             }
 
         } catch(error) {
-            console.warn(logError(error), "dbFindAndDelete")
+            console.warn(await logError(error), "dbFindAndDelete")
             reject("Something went wrong with the database delete function.")
         }
     }) 
@@ -102,7 +103,7 @@ async function dbFindAndBan(discordId = "none", vrchatId = "none") {
             }
 
         } catch(error) {
-            console.warn(logError(error), "dbFindAndBan")
+            console.warn(await logError(error), "dbFindAndBan")
             reject("Something went wrong with the database.")
         }
     }) 
@@ -132,7 +133,7 @@ async function dbFindAndUnban(discordId = "none", vrchatId = "none") {
             }
 
         } catch(error) {
-            console.warn(logError(error), "dbFindAndUnban")
+            console.warn(await logError(error), "dbFindAndUnban")
             reject("Something went wrong with the database.")
         }
     }) 

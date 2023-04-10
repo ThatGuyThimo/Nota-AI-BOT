@@ -1,5 +1,7 @@
 const SlashCommand = require("../Structures/SlashCommand.js");
 
+const { sendErrorDC } = require("../Classes/errorLogging.js");
+
 const Discord = require("discord.js");
 
 const config = require("../Data/config.json");
@@ -32,7 +34,7 @@ module.exports = new SlashCommand({
                     inline: false
                 },
                 {
-                    name: `$/online`,
+                    name: `/online`,
                     value: `tells you if nota is online`,
                     inline: false
                 },
@@ -42,7 +44,7 @@ module.exports = new SlashCommand({
                     inline: false
                 },
                 {
-                    name: `$/info`,
+                    name: `/info`,
                     value: `gives info about Nota AI`,
                     inline: false
                 }
@@ -50,6 +52,7 @@ module.exports = new SlashCommand({
         try {
             message.reply({ embeds: [embed] });
         } catch {
+            sendErrorDC(client, message, "help", error)
             console.log('something went wrong')
         }
 

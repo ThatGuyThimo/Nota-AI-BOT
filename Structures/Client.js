@@ -23,12 +23,12 @@ let slashCommands = []
 
 class Client extends Discord.Client {
     constructor() {
-        super({ intents, allowedMentions: { repliedUser: false } });
+        super({ intents, allowedMentions: { parse: ['users', 'roles'], repliedUser: false } });
 
         /**
          * @type {Discord.Collection<string, command>}
          */
-        this.commands = new Discord.Collection();
+        // this.commands = new Discord.Collection();
 
         this.slashcommands = new Discord.Collection();
 
@@ -37,17 +37,17 @@ class Client extends Discord.Client {
 
     start(token) {
 
-        fs.readdirSync("./Commands")
-            .filter(file => file.endsWith(".js"))
-            .forEach(file => {
-                /**
-                 * @type {Command}
-                 */
-                const command = require(`../Commands/${file}`);
-                console.log(`Command ${command.name} loaded`);
-                this.commands.set(command.name, command);
+        // fs.readdirSync("./Commands")
+        //     .filter(file => file.endsWith(".js"))
+        //     .forEach(file => {
+        //         /**
+        //          * @type {Command}
+        //          */
+        //         const command = require(`../Commands/${file}`);
+        //         console.log(`Command ${command.name} loaded`);
+        //         this.commands.set(command.name, command);
 
-            });
+        //     });
 
         fs.readdirSync("./Events")
             .filter(file => file.endsWith(".js"))
@@ -87,12 +87,13 @@ class Client extends Discord.Client {
   
         (async () => {
             try {
-            console.log('Started refreshing application (/) commands.');
-                
+                if(false) {
 
-            await rest.put(Routes.applicationGuildCommands(config.clientId, config.guildId), { body: slashCommands });
-        
-            console.log('Successfully reloaded application (/) commands.');
+                console.log('Started refreshing application (/) commands.');
+                await rest.put(Routes.applicationCommands(config.clientId, config.guildId), { body: slashCommands });
+            
+                console.log('Successfully reloaded application (/) commands.');
+            }
             } catch (error) {
             console.error(error);
             }

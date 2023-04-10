@@ -2,6 +2,8 @@ const SlashCommand = require("../Structures/SlashCommand.js");
 
 const { banUser } = require("../Classes/vrchat.js");
 
+const { sendErrorDC } = require("../Classes/errorLogging.js");
+
 const config = require("../Data/config.json");
 
 const Discord = require("discord.js");
@@ -67,7 +69,8 @@ module.exports = new SlashCommand({
                     ]);
                 try {
                     message.reply({ embeds: [embed] });
-                } catch {
+                } catch(error) {
+                    sendErrorDC(client, message, "banUser", error)
                     console.log('something went wrong, user still banned.')
                 }
                 } else {
@@ -78,6 +81,7 @@ module.exports = new SlashCommand({
             }
             } catch(error) {
                 console.log(error)
+                sendErrorDC(client, message, "banUser", error)
                 message.reply('Something went wrong, user still banned.')
             }            
     }

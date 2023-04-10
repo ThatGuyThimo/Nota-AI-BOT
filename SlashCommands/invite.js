@@ -6,6 +6,8 @@ const config = require("../Data/config.json");
 
 const { online, getWorld, getInstance } = require("../Classes/vrchat.js");
 
+const { sendErrorDC } = require("../Classes/errorLogging.js");
+
 module.exports = new SlashCommand({
     name: "invite",
     description: "creates an invite to notas world",
@@ -48,6 +50,7 @@ module.exports = new SlashCommand({
             
                     } catch(error) {
                         console.warn(error)
+                        sendErrorDC(client, message, "invite", error)
                         message.reply("Something went wrong")
                     }
                         
@@ -61,6 +64,7 @@ module.exports = new SlashCommand({
                         message.reply({ embeds: [embed] });
                     } catch(error) {
                         console.warn(error)
+                        sendErrorDC(client, message, "invite", error)
                         message.reply("Something went wrong")
                     }
                 }
@@ -69,6 +73,7 @@ module.exports = new SlashCommand({
         }
     } catch(error) {
     console.warn(error)
+    sendErrorDC(client, message, "invite", error)
     message.reply("Something went wrong")
     }
 }

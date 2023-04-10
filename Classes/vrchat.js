@@ -1,9 +1,18 @@
 const vrchat = require("vrchat");
 
+const axios = require('axios');
+
+var tough = require("tough-cookie");
+
 const config = require("../Data/config.json");
+
+const totp = require("totp-generator");
+
+const fs = require('fs');
 
 const { dbInsert, dbFindAndDelete, dbFindAndBan, dbFindAndUnban, dbFind } = require("./mongo.js");
 const { logError } = require("./errorLogging.js");
+const { error } = require("console");
 
 
 let lastTime = new Date
@@ -11,22 +20,147 @@ let lastPing = new Date
 lastPing = lastPing.getTime()
 
 const configuration = new vrchat.Configuration({
-    username: config.email,
-    password: config.password
+    username: encodeURI(config.email),
+    password: encodeURI(config.password)
 });
 
-let UsersApi = new vrchat.UsersApi(configuration);
-let WorldApi = new vrchat.WorldsApi(configuration);
-let GroupApi = new vrchat.GroupsApi(configuration);
+
+let UsersApi = ""
+let WorldApi = ""
+let GroupApi = ""
+let AuthenticationApi = ""
 
 
+ 
+/**
+ * 
+ * @param {Date} now Date.
+ */
+async function connect (now) {
+    try {
+        let auth_token = null
 
-let AuthenticationApi = new vrchat.AuthenticationApi(configuration);
+        let cookies = fs.readFileSync("./Data/cookies.json", "utf-8");
+        if (cookies !== "") {
+            axios.defaults.jar = tough.CookieJar.fromJSON(JSON.parse(cookies));
+            cookies = JSON.parse(cookies)
+            auth_token = cookies.cookies[1].value
+        }
 
+        let axiosConfig = axios.create({
+            headers: {
+                'Accept': '*/*',
+                'User-Agent': `${config.userAgent}`,
+            }
+        });
 
-AuthenticationApi.getCurrentUser().then(resp => {
-    console.log(`VRchat logged in as: ${resp.data.displayName}`);
-})
+        AuthenticationApi = new vrchat.AuthenticationApi(configuration, undefined, axiosConfig);
+
+        let session = false;
+        if(auth_token != null){
+            await AuthenticationApi.verifyAuthToken({data: `auth=${auth_token}`}).then(resp => {
+                session = resp.data.ok;
+            }).catch(error => {
+                console.log('authToken invalid or expired')
+            })
+        }
+
+        if (session) {
+            let newAxiosConfig = axios.create({
+                headers: {
+                    'Accept': '*/*',
+                    'User-Agent': `${config.userAgent}`,
+                    'auth':  `${auth_token}`
+                }
+            });
+
+            UsersApi = new vrchat.UsersApi(configuration, undefined, newAxiosConfig);
+            WorldApi = new vrchat.WorldsApi(configuration, undefined, newAxiosConfig);
+            GroupApi = new vrchat.GroupsApi(configuration, undefined, newAxiosConfig);
+
+            AuthenticationApi.getCurrentUser(axiosConfig).then(async resp => {
+                if(resp?.error ){
+                    console.log(await logError(resp?.error));
+                } else {
+                    console.log('authToken Valid!');
+                    console.log(`VRchat logged in as: ${resp.data.displayName}`);
+                }
+                
+            })
+        } else {
+            console.log('Attempting login')
+            
+            axios.defaults.withCredentials = true;
+            axios.defaults.jar.setCookie(new tough.Cookie({ key: 'apiKey', value: 'JlE5Jldo5Jibnk5O5hTx6XVqsJu4WJ26' }), 'https://api.vrchat.cloud', {}, function() {});
+            
+            
+            AuthenticationApi.getCurrentUser().then(async resp => {
+            
+                let currentUser = resp.data;
+            
+                if (currentUser.displayName === undefined) {
+            
+                    console.log("Attempting 2FA");
+                    const token = totp(config.VRC_2FA_SECRET);
+            
+                    await AuthenticationApi.verify2FA({ code: token }).then( resp => {
+                        console.log(`Verified: ${resp.data.verified}`);
+                    })
+            
+                    let cookies = JSON.stringify(axios.defaults.jar.toJSON());
+                    fs.writeFileSync("./Data/cookies.json", cookies, "utf-8");
+
+                    let cookie = JSON.parse(cookies)
+
+                    let newAxiosConfig = axios.create({
+                        headers: {
+                            'Accept': '*/*',
+                            'User-Agent': `${config.userAgent}`,
+                            'auth':  `${cookie.cookies[1].value}`
+                        }
+                    });
+        
+                    UsersApi = new vrchat.UsersApi(configuration, undefined, newAxiosConfig);
+                    WorldApi = new vrchat.WorldsApi(configuration, undefined, newAxiosConfig);
+                    GroupApi = new vrchat.GroupsApi(configuration, undefined, newAxiosConfig);
+                    
+                    await AuthenticationApi.getCurrentUser().then(resp => {
+                        currentUser = resp.data;
+                    });
+                } else {
+
+                    let cookies = JSON.stringify(axios.defaults.jar.toJSON());
+                    fs.writeFileSync("./Data/cookies.json", cookies, "utf-8");
+    
+                    let cookie = JSON.parse(cookies)
+
+                    let newAxiosConfig = axios.create({
+                        headers: {
+                            'Accept': '*/*',
+                            'User-Agent': `${config.userAgent}`,
+                            'auth':  `${cookie.cookies[1].value}`
+                        }
+                    });
+
+                    UsersApi = new vrchat.UsersApi(configuration, undefined, newAxiosConfig);
+                    WorldApi = new vrchat.WorldsApi(configuration, undefined, newAxiosConfig);
+                    GroupApi = new vrchat.GroupsApi(configuration, undefined, newAxiosConfig);
+                }
+            
+                console.log(`VRchat logged in as: ${currentUser.displayName}`);
+            
+            })
+    
+            lastTime = now
+        }
+    } catch(error) {
+        console.warn(await logError(error), "connect")
+    }
+   
+}
+
+connect(new Date);
+
 
 let state =  'offline';
 
@@ -45,6 +179,7 @@ return new Promise((resolve, reject) => {
 
         result.data.forEach(async function (request) {
             index++
+            console.log(request.user.displayName + username)
             if (request.user.displayName == username) {
                 requestExists = true
                 dbInsert(client.user.username, client.user.id, request.user.displayName, request.userId).then(async function(result) { 
@@ -70,9 +205,44 @@ return new Promise((resolve, reject) => {
                 }).catch(error => {
                     resolve(error)
                 })
-            } else if(index == result.data.length && requestExists == false) {
+            } else {
                 resolve("User not found. Did you request to join the VRChat group?")
             }
+
+
+
+
+            // else if(index == result.data.length && requestExists == false) {
+            //     index = 0
+            //     requestExists = false
+            //     let memberAmount = 100
+                
+            //     GroupApi.getGroup(config.groupId).then(async function (group) {
+
+            //         if (group.data.memberCount < 100) {
+            //             memberAmount = group.data.memberCount
+            //         }
+            //             await GroupApi.getGroupMembers(config.groupId, memberAmount).then( request => {
+
+            //                 request.data.forEach(member => {
+            //                     index++
+            //                     if (member.user.displayName === username) {
+            //                         requestExists = true
+        
+            //                         dbInsert(client.user.username, client.user.id, member.user.displayName, member.userId).then(async function(result) {
+            //                             resolve(`${username} accpeted .`)
+            //                         }).catch(error => {
+            //                             resolve(error)
+            //                         })
+            //                     } else if (index == request.data.length && requestExists == false) {
+            //                         resolve("User not found. Did you request to join the VRChat group?")
+            //                     }
+            //                 })
+            //             }).catch(error => {
+            //                 reject(error)
+            //             })
+            //         })
+            //     }
         }) 
     }).catch(error => {
         reject(error)
@@ -215,35 +385,12 @@ async function unbanUser(userId) {
 
 /**
  * 
- * @param {Date} now Date in .getTime() format.
- */
-async function connect(now) {
-    try {
-        console.log("Re initializing api.")
-        await AuthenticationApi.logout()
-
-        UsersApi = new vrchat.UsersApi(configuration);
-        WorldApi = new vrchat.WorldsApi(configuration);
-        GroupApi = new vrchat.GroupsApi(configuration);
-        AuthenticationApi = new vrchat.AuthenticationApi(configuration);
-        
-        await AuthenticationApi.getCurrentUser().then(resp => {
-            console.log(`VRchat logged in as: ${resp.data.displayName}`);
-        })
-        lastTime = now
-
-    } catch(error) {
-        console.warn(await logError(error))
-    }
-}
-
-/**
- * 
  * @returns VRChat api data abou the user.
  */
 async function online() {
     let now = new Date
     if (now.getDay() != lastTime.getDay()) {
+        console.log("Re initializing api.")
         await connect(now)
     }
     return new Promise((resolve, reject) => {
@@ -256,6 +403,7 @@ async function online() {
             }
         resolve(resp.data)
      }).catch(async function(error) {
+        console.log("Re initializing api.")
          await connect(now)
          console.warn(await logError(error), "online")
         reject(error)
@@ -333,22 +481,21 @@ async function sendPing(state, client) {
         switch(state){
             case "online":
                 if (lastPing < now.getTime()) {
-                    console.log()
-                    adminChannel.send(`<@&924403524027154513> nota is online`);
+                    // adminChannel.send(`<@&924403524027154513> nota is online`);
                     userChannel.send(`<@&924403524027154513> nota is online`);
     
                     lastPing = now.getTime() + config.pingTimout
                 } else {
-                    adminChannel.send(`nota is online`);
+                    // adminChannel.send(`nota is online`);
                     userChannel.send(`nota is online`);
                 }
                 break
             case "active":
-                adminChannel.send(`nota is active`);
+                // adminChannel.send(`nota is active`);
                 userChannel.send(`nota is active`);
                 break
             default:
-                adminChannel.send(`nota is offline`);
+                // adminChannel.send(`nota is offline`);
                 userChannel.send(`nota is offline`);
                 break
         }

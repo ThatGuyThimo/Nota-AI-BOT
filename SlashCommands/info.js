@@ -1,5 +1,7 @@
 const SlashCommand = require("../Structures/SlashCommand.js");
 
+const { sendErrorDC } = require("../Classes/errorLogging.js");
+
 const Discord = require("discord.js");
 
 const config = require("../Data/config.json");
@@ -62,6 +64,7 @@ module.exports = new SlashCommand({
 
         } catch(error) {
             console.warn(error)
+            sendErrorDC(client, message, "info", error)
             message.reply('Something went wrong.')
         }
     }

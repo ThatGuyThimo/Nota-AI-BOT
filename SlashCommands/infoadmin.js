@@ -6,6 +6,8 @@ const config = require("../Data/config.json");
 
 const { online, getWorld, getInstance } = require("../Classes/vrchat.js");
 
+const { sendErrorDC } = require("../Classes/errorLogging.js");
+
 module.exports = new SlashCommand({
     name: "infoadmin",
     description: "gives you info about nota",
@@ -80,14 +82,17 @@ module.exports = new SlashCommand({
                     try {
                         message.reply({ embeds: [embed] });
                     } catch(error) {
+                        sendErrorDC(client, message, "infoadmin", error)
                         message.reply("Something went wrong")
                     }
                 });
             }).catch(error => {
+                sendErrorDC(client, message, "infoadmin", error)
                 message.reply("Something went wrong")
             });
     } catch(error) {
         console.warn(error)
+        sendErrorDC(client, message, "infoadmin", error)
         message.reply('Something went wrong')
     }
 }

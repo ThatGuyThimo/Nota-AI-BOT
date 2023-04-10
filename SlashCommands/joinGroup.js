@@ -1,6 +1,7 @@
 const SlashCommand = require("../Structures/SlashCommand.js");
 
 const { joinGroup } = require("../Classes/vrchat.js");
+const { logError, sendErrorDC } = require("../Classes/errorLogging.js");
 
 module.exports = new SlashCommand({
     name: "joingroup",
@@ -15,10 +16,10 @@ module.exports = new SlashCommand({
     async run(message, args, client) {
         try {
             result = await joinGroup(args[0].value, message)
-
             message.reply(`${result}`);
         } catch(error) {
-            console.warn(logError(error))
+            console.warn(await logError(error))
+            sendErrorDC(client, message, "joinGroup", error)
             message.reply('Something went wrong')
         }
 

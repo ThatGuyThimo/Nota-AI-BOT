@@ -2,7 +2,7 @@ const config = require("../Data/config.json");
 
 const fs = require('fs');
 const path = require('path');
-const { resolve } = require("path");
+const Discord = require("discord.js");
 
 /**
  * Creates error loging dir.
@@ -19,6 +19,11 @@ async function _createloggingFolder() {
     })
 }
 
+/**
+ * 
+ * @param {error} value 
+ * @returns string (file name)
+ */
 async function logError(value) {
     return new Promise(async function (resolve, reject) {        
         let date = new Date
@@ -30,7 +35,7 @@ async function logError(value) {
                     reject(false)
                 }
             })
-            fs.writeFile(`${config.loggingDir}errorLogs/${fileName}.txt`, `error :${value}`, function (error) {
+            fs.writeFile(`${config.loggingDir}errorLogs/${fileName}.txt`, `${value}`, function (error) {
                 if (error) {
                     console.log(error)
                     reject(false)
@@ -40,4 +45,51 @@ async function logError(value) {
         }
     })
 }
-module.exports = {logError}
+
+/**
+ * 
+ * @param {Discord client} client 
+ * @param {String} error 
+ */
+async function sendErrorDC(client, message, command, error) {
+    try {
+        await client.channels.fetch('1094725966883983441')
+        botErrors = await client.channels.cache.get('1094725966883983441')
+
+        const embed = new Discord.EmbedBuilder()
+
+        .setTitle(`ERROR LOG`)
+        .setAuthor({
+            name : message.user.tag,
+            iconURL : message.user.avatarURL()
+        })
+        .setColor("FF0000")
+        .setTimestamp()
+        .addFields([
+            {
+                name: "Bot Version",
+                value: "0.1.3",
+                inline: false
+            },
+            {
+                name: "Command",
+                value: `${command}`,
+                inline: false
+            },
+            {
+                name: "Send by",
+                value: `${message.user.tag}`,
+                inline: false
+            },
+            {
+                name: "Error",
+                value: "```js\n" + error + "```",
+                inline: false
+            },
+        ]);
+        botErrors.send({ embeds: [embed] });
+} catch {
+    console.log('something went wrong with sendErrorDC')
+}
+}
+module.exports = {logError, sendErrorDC}

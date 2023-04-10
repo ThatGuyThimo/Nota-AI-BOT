@@ -4,6 +4,8 @@ const Discord = require("discord.js");
 
 const config = require("../Data/config.json");
 
+const { sendErrorDC } = require("../Classes/errorLogging.js");
+
 module.exports = new SlashCommand({
     name: "about",
     description: "shows info about the bot",
@@ -24,7 +26,7 @@ module.exports = new SlashCommand({
             .addFields([
                 {
                     name: "Bot Version",
-                    value: "0.1.2",
+                    value: "0.1.3",
                     inline: false
                 },
                 {
@@ -45,7 +47,8 @@ module.exports = new SlashCommand({
             ]);
         try {
             message.reply({ embeds: [embed] });
-        } catch {
+        } catch(error) {
+            sendErrorDC(client, message, "about", error)
             console.log('something went wrong')
         }
 
