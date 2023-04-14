@@ -19,144 +19,165 @@ let lastTime = new Date
 let lastPing = new Date
 lastPing = lastPing.getTime()
 
+let loggedin = false
+
 const configuration = new vrchat.Configuration({
     username: encodeURI(config.email),
     password: encodeURI(config.password)
 });
 
 
-let UsersApi = ""
-let WorldApi = ""
-let GroupApi = ""
-let AuthenticationApi = ""
+let UsersApi = null
+let WorldApi = null
+let GroupApi = null
+let AuthenticationApi = null
 
 
+async function logout() {
+    loggedin = false
+    AuthenticationApi.logout()
+}
  
 /**
  * 
  * @param {Date} now Date.
  */
 async function connect (now) {
-    try {
-        let auth_token = null
-
-        let cookies = fs.readFileSync("./Data/cookies.json", "utf-8");
-        if (cookies !== "") {
-            axios.defaults.jar = tough.CookieJar.fromJSON(JSON.parse(cookies));
-            cookies = JSON.parse(cookies)
-            auth_token = cookies.cookies[1].value
-        }
-
-        let axiosConfig = axios.create({
-            headers: {
-                'Accept': '*/*',
-                'User-Agent': `${config.userAgent}`,
+    return new Promise(async(resolve, reject) => {
+        try {
+    
+            if (loggedin) {
+                AuthenticationApi.logout()
             }
-        });
-
-        AuthenticationApi = new vrchat.AuthenticationApi(configuration, undefined, axiosConfig);
-
-        let session = false;
-        if(auth_token != null){
-            await AuthenticationApi.verifyAuthToken({data: `auth=${auth_token}`}).then(resp => {
-                session = resp.data.ok;
-            }).catch(error => {
-                console.log('authToken invalid or expired')
-            })
-        }
-
-        if (session) {
-            let newAxiosConfig = axios.create({
+    
+            let auth_token = null
+    
+            let cookies = fs.readFileSync("./Data/cookies.json", "utf-8");
+            if (cookies !== "") {
+                axios.defaults.jar = tough.CookieJar.fromJSON(JSON.parse(cookies));
+                cookies = JSON.parse(cookies)
+                auth_token = cookies.cookies[1].value
+            }
+    
+            let axiosConfig = axios.create({
                 headers: {
                     'Accept': '*/*',
                     'User-Agent': `${config.userAgent}`,
-                    'auth':  `${auth_token}`
                 }
             });
-
-            UsersApi = new vrchat.UsersApi(configuration, undefined, newAxiosConfig);
-            WorldApi = new vrchat.WorldsApi(configuration, undefined, newAxiosConfig);
-            GroupApi = new vrchat.GroupsApi(configuration, undefined, newAxiosConfig);
-
-            AuthenticationApi.getCurrentUser(axiosConfig).then(async resp => {
-                if(resp?.error ){
-                    console.log(await logError(resp?.error));
-                } else {
-                    console.log('authToken Valid!');
-                    console.log(`VRchat logged in as: ${resp.data.displayName}`);
-                }
-                
-            })
-        } else {
-            console.log('Attempting login')
-            
-            axios.defaults.withCredentials = true;
-            axios.defaults.jar.setCookie(new tough.Cookie({ key: 'apiKey', value: 'JlE5Jldo5Jibnk5O5hTx6XVqsJu4WJ26' }), 'https://api.vrchat.cloud', {}, function() {});
-            
-            
-            AuthenticationApi.getCurrentUser().then(async resp => {
-            
-                let currentUser = resp.data;
-            
-                if (currentUser.displayName === undefined) {
-            
-                    console.log("Attempting 2FA");
-                    const token = totp(config.VRC_2FA_SECRET);
-            
-                    await AuthenticationApi.verify2FA({ code: token }).then( resp => {
-                        console.log(`Verified: ${resp.data.verified}`);
-                    })
-            
-                    let cookies = JSON.stringify(axios.defaults.jar.toJSON());
-                    fs.writeFileSync("./Data/cookies.json", cookies, "utf-8");
-
-                    let cookie = JSON.parse(cookies)
-
-                    let newAxiosConfig = axios.create({
-                        headers: {
-                            'Accept': '*/*',
-                            'User-Agent': `${config.userAgent}`,
-                            'auth':  `${cookie.cookies[1].value}`
-                        }
-                    });
-        
-                    UsersApi = new vrchat.UsersApi(configuration, undefined, newAxiosConfig);
-                    WorldApi = new vrchat.WorldsApi(configuration, undefined, newAxiosConfig);
-                    GroupApi = new vrchat.GroupsApi(configuration, undefined, newAxiosConfig);
+    
+            AuthenticationApi = new vrchat.AuthenticationApi(configuration, undefined, axiosConfig);
+    
+            let session = false;
+            if(auth_token != null && !loggedin){
+                await AuthenticationApi.verifyAuthToken({data: `auth=${auth_token}`}).then(resp => {
+                    session = resp.data.ok;
+                }).catch(error => {
+                    console.log('authToken invalid or expired')
+                })
+            }
+    
+            if (session) {
+                let newAxiosConfig = axios.create({
+                    headers: {
+                        'Accept': '*/*',
+                        'User-Agent': `${config.userAgent}`,
+                        'auth':  `${auth_token}`
+                    }
+                });
+    
+                UsersApi = new vrchat.UsersApi(configuration, undefined, newAxiosConfig);
+                WorldApi = new vrchat.WorldsApi(configuration, undefined, newAxiosConfig);
+                GroupApi = new vrchat.GroupsApi(configuration, undefined, newAxiosConfig);
+    
+                AuthenticationApi.getCurrentUser(axiosConfig).then(async resp => {
+                    if(resp?.error ){
+                        console.log(await logError(resp?.error));
+                        reject('Something went wrong with the connection. resp?.error')
+                    } else {
+                        console.log('authToken Valid!');
+                        console.log(`VRchat logged in as: ${resp.data.displayName}`);
+                        loggedin = true
+                        resolve("logged in!")
+                    }
                     
-                    await AuthenticationApi.getCurrentUser().then(resp => {
-                        currentUser = resp.data;
-                    });
-                } else {
-
-                    let cookies = JSON.stringify(axios.defaults.jar.toJSON());
-                    fs.writeFileSync("./Data/cookies.json", cookies, "utf-8");
+                })
+            } else {
+                console.log('Attempting login')
+                
+                axios.defaults.withCredentials = true;
+                axios.defaults.jar.setCookie(new tough.Cookie({ key: 'apiKey', value: 'JlE5Jldo5Jibnk5O5hTx6XVqsJu4WJ26' }), 'https://api.vrchat.cloud', {}, function() {});
+                
+                
+                AuthenticationApi.getCurrentUser().then(async resp => {
+                
+                    let currentUser = resp;
+                
+                    if (currentUser.displayName === undefined) {
+                
+                        console.log("Attempting 2FA");
+                        const token = totp(config.VRC_2FA_SECRET);
+                
+                        await AuthenticationApi.verify2FA({ code: token }).then( resp => {
+                            console.log(`Verified: ${resp.data.verified}`);
+                        })
+                
+                        let newCookies = JSON.stringify(axios.defaults.jar.toJSON());
+                        fs.writeFileSync("./Data/cookies.json", newCookies, "utf-8");
     
-                    let cookie = JSON.parse(cookies)
-
-                    let newAxiosConfig = axios.create({
-                        headers: {
-                            'Accept': '*/*',
-                            'User-Agent': `${config.userAgent}`,
-                            'auth':  `${cookie.cookies[1].value}`
-                        }
-                    });
-
-                    UsersApi = new vrchat.UsersApi(configuration, undefined, newAxiosConfig);
-                    WorldApi = new vrchat.WorldsApi(configuration, undefined, newAxiosConfig);
-                    GroupApi = new vrchat.GroupsApi(configuration, undefined, newAxiosConfig);
-                }
-            
-                console.log(`VRchat logged in as: ${currentUser.displayName}`);
-            
-            })
+                        let cookie = JSON.parse(newCookies)
     
-            lastTime = now
+                        let newAxiosConfig = axios.create({
+                            headers: {
+                                'Accept': '*/*',
+                                'User-Agent': `${config.userAgent}`,
+                                'auth':  `${cookie.cookies[1].value}`
+                            }
+                        });
+            
+                        UsersApi = new vrchat.UsersApi(configuration, undefined, newAxiosConfig);
+                        WorldApi = new vrchat.WorldsApi(configuration, undefined, newAxiosConfig);
+                        GroupApi = new vrchat.GroupsApi(configuration, undefined, newAxiosConfig);
+                        
+                        await AuthenticationApi.getCurrentUser().then(resp => {
+                            currentUser = resp;
+                        });
+                    } else {
+    
+                        let cookies = JSON.stringify(axios.defaults.jar.toJSON());
+                        fs.writeFileSync("./Data/cookies.json", cookies, "utf-8");
+        
+                        let cookie = JSON.parse(cookies)
+    
+                        let newAxiosConfig = axios.create({
+                            headers: {
+                                'Accept': '*/*',
+                                'User-Agent': `${config.userAgent}`,
+                                'auth':  `${cookie.cookies[1].value}`
+                            }
+                        });
+    
+                        UsersApi = new vrchat.UsersApi(configuration, undefined, newAxiosConfig);
+                        WorldApi = new vrchat.WorldsApi(configuration, undefined, newAxiosConfig);
+                        GroupApi = new vrchat.GroupsApi(configuration, undefined, newAxiosConfig);
+                    }
+                    if (currentUser?.error) {
+                        reject('Something went wrong with the connection. currentUser')
+                    } else {
+                        loggedin = true
+                        console.log(`VRchat logged in as: ${currentUser.data.displayName}`);
+                        resolve("logged in!")
+                    }
+                
+                })
+        
+                lastTime = now
+            }
+        } catch(error) {
+            console.warn(await logError(error), "connect")
+            reject('Something went wrong with the connection. catch')
         }
-    } catch(error) {
-        console.warn(await logError(error), "connect")
-    }
-   
+    });
 }
 
 connect(new Date);
@@ -389,7 +410,7 @@ async function unbanUser(userId) {
  */
 async function online() {
     let now = new Date
-    if (now.getDay() != lastTime.getDay()) {
+    if (now.getDay() != lastTime.getDay() || !loggedin) {
         console.log("Re initializing api.")
         await connect(now)
     }
@@ -460,7 +481,7 @@ async function onlineping(client) {
             sendPing(state, client)
         }
     }).catch(async function (error) {
-        console.warn(await logError(error), "onlineping")
+
     });
 }
 
@@ -504,4 +525,4 @@ async function sendPing(state, client) {
     }
 }
 
-module.exports = { online, onlineping, getWorld, getInstance, joinGroup, banUser, unbanUser }
+module.exports = { online, onlineping, getWorld, getInstance, joinGroup, banUser, unbanUser, logout }
