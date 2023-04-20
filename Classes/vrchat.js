@@ -2,9 +2,11 @@ const vrchat = require("vrchat");
 
 const axios = require('axios');
 
-var tough = require("tough-cookie");
+const tough = require("tough-cookie");
 
 const config = require("../Data/config.json");
+
+const colors = require('colors');
 
 const totp = require("totp-generator");
 
@@ -12,8 +14,8 @@ const fs = require('fs');
 
 const { dbInsert, dbFindAndDelete, dbFindAndBan, dbFindAndUnban, dbFind } = require("./mongo.js");
 const { logError } = require("./errorLogging.js");
-const { error } = require("console");
 
+colors.enable()
 
 let lastTime = new Date
 let lastPing = new Date
@@ -47,6 +49,7 @@ async function connect (now) {
         try {
     
             if (loggedin) {
+                console.warn('logging out!'.yellow)
                 AuthenticationApi.logout()
             }
     
@@ -73,7 +76,7 @@ async function connect (now) {
                 await AuthenticationApi.verifyAuthToken({data: `auth=${auth_token}`}).then(resp => {
                     session = resp.data.ok;
                 }).catch(error => {
-                    console.log('authToken invalid or expired')
+                    console.log('authToken invalid or expired!'.yellow)
                 })
             }
     
@@ -93,17 +96,17 @@ async function connect (now) {
                 AuthenticationApi.getCurrentUser(axiosConfig).then(async resp => {
                     if(resp?.error ){
                         console.log(await logError(resp?.error));
-                        reject('Something went wrong with the connection. resp?.error')
+                        reject('Something went wrong with the connection!. resp?.error')
                     } else {
-                        console.log('authToken Valid!');
-                        console.log(`VRchat logged in as: ${resp.data.displayName}`);
+                        console.log('authToken Valid!'.green);
+                        console.log(`VRchat logged in as: ${resp.data.displayName}`.green);
                         loggedin = true
                         resolve("logged in!")
                     }
                     
                 })
             } else {
-                console.log('Attempting login')
+                console.log('Attempting login'.blue)
                 
                 axios.defaults.withCredentials = true;
                 axios.defaults.jar.setCookie(new tough.Cookie({ key: 'apiKey', value: 'JlE5Jldo5Jibnk5O5hTx6XVqsJu4WJ26' }), 'https://api.vrchat.cloud', {}, function() {});
@@ -115,12 +118,15 @@ async function connect (now) {
                 
                     if (currentUser.displayName === undefined) {
                 
-                        console.log("Attempting 2FA");
+                        console.log("Attempting 2FA".blue);
                         const token = totp(config.VRC_2FA_SECRET);
                 
                         await AuthenticationApi.verify2FA({ code: token }).then( resp => {
-                            console.log(`Verified: ${resp.data.verified}`);
-                        })
+                            console.log(`Verified: ${resp.data.verified}`.blue);
+                        }).catch(async error => {
+                            console.warn(await logError(error), "verify2FA".underline.red)
+                            reject('Something went wrong with the connection. verify2FA')
+                        }) 
                 
                         let newCookies = JSON.stringify(axios.defaults.jar.toJSON());
                         fs.writeFileSync("./Data/cookies.json", newCookies, "utf-8");
@@ -165,7 +171,7 @@ async function connect (now) {
                         reject('Something went wrong with the connection. currentUser')
                     } else {
                         loggedin = true
-                        console.log(`VRchat logged in as: ${currentUser.data.displayName}`);
+                        console.log(`VRchat logged in as: ${currentUser.data.displayName}`.green);
                         resolve("logged in!")
                     }
                 
@@ -174,7 +180,7 @@ async function connect (now) {
                 lastTime = now
             }
         } catch(error) {
-            console.warn(await logError(error), "connect")
+            console.warn(await logError(error), "connect".underline.red)
             reject('Something went wrong with the connection. catch')
         }
     });
@@ -292,7 +298,7 @@ async function banUser(userId) {
                                 GroupApi.banGroupMember(config.groupId, `{"userId" : "${user.vrchatId}"}`).then(function() {
                                     resolve(`{"result": "User banned", "vrcID": "${user.vrchatId}", "vrcN": "${user.vrchatName}", "dcID": "${user.discordId}", "dcN": "${user.discordName}"}`)
                                 }).catch(async function (error) {
-                                    console.warn(await logError(error), "banUser")
+                                    console.warn(await logError(error), "banUser".underline.red)
                                     reject(error)
                                 })
                             } else {
@@ -319,7 +325,7 @@ async function banUser(userId) {
                                 GroupApi.banGroupMember(config.groupId, `{"userId" : "${user.vrchatId}"}`).then(function() {
                                     resolve(`{"result": "User banned", "vrcID": "${user.vrchatId}", "vrcN": "${user.vrchatName}", "dcID": "${user.discordId}", "dcN": "${user.discordName}"}`)
                                 }).catch(async function (error) {
-                                    console.warn(await logError(error), "banUser")
+                                    console.warn(await logError(error), "banUser".underline.red)
                                     reject(error)
                                 })
                             } else {
@@ -357,7 +363,7 @@ async function unbanUser(userId) {
                                 GroupApi.unbanGroupMember(config.groupId, user.vrchatId).then(function() {
                                     resolve(`{"result": "User unbanned", "vrcID": "${user.vrchatId}", "vrcN": "${user.vrchatName}", "dcID": "${user.discordId}", "dcN": "${user.discordName}"}`)
                                 }).catch(async function (error) {
-                                    console.warn(await logError(error), "unbanUser")
+                                    console.warn(await logError(error), "unbanUser".underline.red)
                                     reject(error)
                                 })
                             } else {
@@ -384,7 +390,7 @@ async function unbanUser(userId) {
                                 GroupApi.unbanGroupMember(config.groupId, user.vrchatId).then(function() {
                                     resolve(`{"result": "User unbanned", "vrcID": "${user.vrchatId}", "vrcN": "${user.vrchatName}", "dcID": "${user.discordId}", "dcN": "${user.discordName}"}`)
                                 }).catch(async function (error) {
-                                    console.warn(await logError(error), "unbanUser")
+                                    console.warn(await logError(error), "unbanUser".underline.red)
                                     reject(error)
                                 })
                             } else {
@@ -411,7 +417,7 @@ async function unbanUser(userId) {
 async function online() {
     let now = new Date
     if (now.getDay() != lastTime.getDay() || !loggedin) {
-        console.log("Re initializing api.")
+        console.log("Re initializing api.".blue)
         await connect(now)
     }
     return new Promise((resolve, reject) => {
@@ -424,9 +430,9 @@ async function online() {
             }
         resolve(resp.data)
      }).catch(async function(error) {
-        console.log("Re initializing api.")
+        console.log("Re initializing api.".blue)
          await connect(now)
-         console.warn(await logError(error), "online")
+         console.warn(await logError(error), "online".underline.red)
         reject(error)
      })
     })
@@ -445,7 +451,7 @@ async function getWorld(worldId) {
         WorldApi.getWorld(worldId).then(resp => {
             resolve(resp.data)
         }).catch(async function (error) {
-            console.warn(await logError(error), "getWorldId")
+            console.warn(await logError(error), "getWorldId".underline.red)
             reject(error)
         })
     })   
@@ -464,7 +470,7 @@ async function getInstance(worldId, instanceId) {
         WorldApi.getWorldInstance(worldId, instanceId).then(resp => {
             resolve(resp.data)
         }).catch(async function (error) {
-            console.warn(await logError(error), "getInstance")
+            console.warn(await logError(error), "getInstance".underline.red)
             reject(error)
         })
     })
@@ -521,7 +527,7 @@ async function sendPing(state, client) {
                 break
         }
     } catch (error) {
-        console.warn(await logError(error), "SendPing")
+        console.warn(await logError(error), "SendPing".underline.red)
     }
 }
 
