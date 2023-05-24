@@ -14,6 +14,7 @@ const fs = require('fs');
 
 const { dbInsert, dbFindAndDelete, dbFindAndBan, dbFindAndUnban, dbFind } = require("./mongo.js");
 const { logError } = require("./errorLogging.js");
+const { error } = require("console");
 
 colors.enable()
 
@@ -175,6 +176,9 @@ async function connect (now) {
                         resolve("logged in!")
                     }
                 
+                }).catch( async error => {
+                    console.warn(await logError(error), "getCurrentUser".underline.red)
+                    reject("'Something went wrong with the connection. getCurrentUser")
                 })
         
                 lastTime = now
@@ -186,7 +190,7 @@ async function connect (now) {
     });
 }
 
-connect(new Date);
+connect(new Date).catch( async error => ( console.warn(await logError(error), "Unmhaddled Connect".underline.red)));
 
 
 let state =  'offline';
